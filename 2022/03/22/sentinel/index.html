@@ -1,0 +1,962 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  
+    <title>Sentinel源码分析 | JsonLu的个人博客网站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    
+    <meta name="author" content="JL">
+    
+
+    
+    <meta name="description" content="1.Sentinel的基本概念Sentinel实现限流、隔离、降级、熔断等功能，本质要做的就是两件事情：  统计数据：统计某个资源的访问数据（QPS、RT等信息） 规则判断：判断限流规则、隔离规则、降级规则、熔断规则是否满足  这里的资源就是希望被Sentinel保护的业务，例如项目中定义的controller方法就是默认被Sentinel保护的资源。 1.1.ProcessorSlotChain">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Sentinel源码分析">
+<meta property="og:url" content="http://blog.b6123.top/2022/03/22/sentinel/index.html">
+<meta property="og:site_name" content="JsonLu的个人博客网站">
+<meta property="og:description" content="1.Sentinel的基本概念Sentinel实现限流、隔离、降级、熔断等功能，本质要做的就是两件事情：  统计数据：统计某个资源的访问数据（QPS、RT等信息） 规则判断：判断限流规则、隔离规则、降级规则、熔断规则是否满足  这里的资源就是希望被Sentinel保护的业务，例如项目中定义的controller方法就是默认被Sentinel保护的资源。 1.1.ProcessorSlotChain">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925092845529.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925103029924.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925104726158.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925113122759.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925141507603.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925115601560.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925115740281.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925141553785.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925115601560.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925115740281.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925115824345.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925115946064.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925120119030.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925120221883.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925142313050.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925142438552.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925144355865.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925144010507.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925144233302.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925101327080.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925152626648.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925153228036.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925153719891.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925163744108.png">
+<meta property="og:image" content="http://blog.b6123.top/images/sentinel.jpg">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925172542274.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925175221211.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925180522926.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925180619492.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925180810181.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925180954856.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925181359203.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925181714605.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925182127206.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925210716675.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925211020881.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925213440686.png">
+<meta property="og:image" content="http://blog.b6123.top/images/image-20210925213939035.png">
+<meta property="article:published_time" content="2022-03-22T06:25:30.004Z">
+<meta property="article:modified_time" content="2022-03-22T06:25:30.005Z">
+<meta property="article:author" content="JL">
+<meta property="article:tag" content="springcloud">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://blog.b6123.top/images/image-20210925092845529.png">
+
+    
+    <link rel="alternative" href="/atom.xml" title="JsonLu的个人博客网站" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="apple-touch-icon" href="/img/jacman.jpg">
+    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
+    
+    
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 6.1.0"></head>
+
+  <body>
+    <header>
+      
+<div>
+		
+			<div id="imglogo">
+				<a href="/"><img src="/img/logo.png" alt="JsonLu的个人博客网站" title="JsonLu的个人博客网站"/></a>
+			</div>
+			
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="JsonLu的个人博客网站">JsonLu的个人博客网站</a></h1>
+				<h2 class="blog-motto">欢迎各位帅哥美女</h2>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">Home</a></li>
+					
+						<li><a href="/archives">Archives</a></li>
+					
+						<li><a href="/about">About</a></li>
+					
+					<li>
+ 					
+					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
+						<label>Search</label>
+						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
+						<input type="hidden" name="q" value="site:blog.b6123.top">
+					</form>
+					
+					</li>
+				</ul>
+			</nav>			
+</div>
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+  
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2022/03/22/sentinel/" title="Sentinel源码分析" itemprop="url">Sentinel源码分析</a>
+  </h1>
+  <p class="article-author">By
+       
+		<a href="/about" title="JL" target="_blank" itemprop="author">JL</a>
+		
+  <p class="article-time">
+    <time datetime="2022-03-22T06:25:30.004Z" itemprop="datePublished"> 发表于 2022-03-22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Sentinel%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.</span> <span class="toc-text">1.Sentinel的基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-ProcessorSlotChain"><span class="toc-number">1.1.</span> <span class="toc-text">1.1.ProcessorSlotChain</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Node"><span class="toc-number">1.2.</span> <span class="toc-text">1.2.Node</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-Entry"><span class="toc-number">1.3.</span> <span class="toc-text">1.3.Entry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-1-%E8%87%AA%E5%AE%9A%E4%B9%89%E8%B5%84%E6%BA%90"><span class="toc-number">1.3.1.</span> <span class="toc-text">1.3.1.自定义资源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-2-%E5%9F%BA%E4%BA%8E%E6%B3%A8%E8%A7%A3%E6%A0%87%E8%AE%B0%E8%B5%84%E6%BA%90"><span class="toc-number">1.3.2.</span> <span class="toc-text">1.3.2.基于注解标记资源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-Context"><span class="toc-number">1.4.</span> <span class="toc-text">1.4.Context</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-1-%E4%BB%80%E4%B9%88%E6%98%AFContext"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.4.1.什么是Context</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-2-Context%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.4.2.</span> <span class="toc-text">1.4.2.Context的初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-4-2-1-%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">1.4.2.1.自动装配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-4-2-2-AbstractSentinelInterceptor"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">1.4.2.2.AbstractSentinelInterceptor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-4-2-3-ContextUtil"><span class="toc-number">1.4.2.3.</span> <span class="toc-text">1.4.2.3.ContextUtil</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-ProcessorSlotChain%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">2.ProcessorSlotChain执行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%85%A5%E5%8F%A3"><span class="toc-number">2.1.</span> <span class="toc-text">2.1.入口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-DefaultProcessorSlotChain"><span class="toc-number">2.2.</span> <span class="toc-text">2.2.DefaultProcessorSlotChain</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-NodeSelectorSlot"><span class="toc-number">2.3.</span> <span class="toc-text">2.3.NodeSelectorSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-ClusterBuilderSlot"><span class="toc-number">2.4.</span> <span class="toc-text">2.4.ClusterBuilderSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-StatisticSlot"><span class="toc-number">2.5.</span> <span class="toc-text">2.5.StatisticSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-AuthoritySlot"><span class="toc-number">2.6.</span> <span class="toc-text">2.6.AuthoritySlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-7-SystemSlot"><span class="toc-number">2.7.</span> <span class="toc-text">2.7.SystemSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-8-ParamFlowSlot"><span class="toc-number">2.8.</span> <span class="toc-text">2.8.ParamFlowSlot</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-1-%E4%BB%A4%E7%89%8C%E6%A1%B6"><span class="toc-number">2.8.1.</span> <span class="toc-text">2.8.1.令牌桶</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-9-FlowSlot"><span class="toc-number">2.9.</span> <span class="toc-text">2.9.FlowSlot</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-1-%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="toc-number">2.9.1.</span> <span class="toc-text">2.9.1.核心流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-2-%E6%BB%91%E5%8A%A8%E6%97%B6%E9%97%B4%E7%AA%97%E5%8F%A3"><span class="toc-number">2.9.2.</span> <span class="toc-text">2.9.2.滑动时间窗口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-9-2-1-%E6%97%B6%E9%97%B4%E7%AA%97%E5%8F%A3%E8%AF%B7%E6%B1%82%E9%87%8F%E7%BB%9F%E8%AE%A1"><span class="toc-number">2.9.2.1.</span> <span class="toc-text">2.9.2.1.时间窗口请求量统计</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-9-2-2-%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3QPS%E8%AE%A1%E7%AE%97"><span class="toc-number">2.9.2.2.</span> <span class="toc-text">2.9.2.2.滑动窗口QPS计算</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-3-%E6%BC%8F%E6%A1%B6"><span class="toc-number">2.9.3.</span> <span class="toc-text">2.9.3.漏桶</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-10-DegradeSlot"><span class="toc-number">2.10.</span> <span class="toc-text">2.10.DegradeSlot</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-10-1-CircuitBreaker"><span class="toc-number">2.10.1.</span> <span class="toc-text">2.10.1.CircuitBreaker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-10-2-%E8%A7%A6%E5%8F%91%E6%96%AD%E8%B7%AF%E5%99%A8"><span class="toc-number">2.10.2.</span> <span class="toc-text">2.10.2.触发断路器</span></a></li></ol></li></ol></li></ol>
+		
+		</div>
+		
+		<h1 id="1-Sentinel的基本概念"><a href="#1-Sentinel的基本概念" class="headerlink" title="1.Sentinel的基本概念"></a>1.Sentinel的基本概念</h1><p>Sentinel实现限流、隔离、降级、熔断等功能，本质要做的就是两件事情：</p>
+<ul>
+<li>统计数据：统计某个资源的访问数据（QPS、RT等信息）</li>
+<li>规则判断：判断限流规则、隔离规则、降级规则、熔断规则是否满足</li>
+</ul>
+<p>这里的<strong>资源</strong>就是希望被Sentinel保护的业务，例如项目中定义的controller方法就是默认被Sentinel保护的资源。</p>
+<h2 id="1-1-ProcessorSlotChain"><a href="#1-1-ProcessorSlotChain" class="headerlink" title="1.1.ProcessorSlotChain"></a>1.1.ProcessorSlotChain</h2><p>实现上述功能的核心骨架是一个叫做ProcessorSlotChain的类。这个类基于责任链模式来设计，将不同的功能（限流、降级、系统保护）封装为一个个的Slot，请求进入后逐个执行即可。</p>
+<p>其工作流如图：</p>
+<p><img src="/../../images/image-20210925092845529.png" alt="image-20210925092845529"></p>
+<p>责任链中的Slot也分为两大类：</p>
+<ul>
+<li>统计数据构建部分（statistic）<ul>
+<li>NodeSelectorSlot：负责构建簇点链路中的节点（DefaultNode），将这些节点形成链路树</li>
+<li>ClusterBuilderSlot：负责构建某个资源的ClusterNode，ClusterNode可以保存资源的运行信息（响应时间、QPS、block 数目、线程数、异常数等）以及来源信息（origin名称）</li>
+<li>StatisticSlot：负责统计实时调用数据，包括运行信息、来源信息等</li>
+</ul>
+</li>
+<li>规则判断部分（rule checking）<ul>
+<li>AuthoritySlot：负责授权规则（来源控制）</li>
+<li>SystemSlot：负责系统保护规则</li>
+<li>ParamFlowSlot：负责热点参数限流规则</li>
+<li>FlowSlot：负责限流规则</li>
+<li>DegradeSlot：负责降级规则</li>
+</ul>
+</li>
+</ul>
+<h2 id="1-2-Node"><a href="#1-2-Node" class="headerlink" title="1.2.Node"></a>1.2.Node</h2><p>Sentinel中的簇点链路是由一个个的Node组成的，Node是一个接口，包括下面的实现：</p>
+<p><img src="/../../images/image-20210925103029924.png" alt="image-20210925103029924"></p>
+<p>所有的节点都可以记录对资源的访问统计数据，所以都是StatisticNode的子类。</p>
+<p>按照作用分为两类Node：</p>
+<ul>
+<li>DefaultNode：代表链路树中的每一个资源，一个资源出现在不同链路中时，会创建不同的DefaultNode节点。而树的入口节点叫EntranceNode，是一种特殊的DefaultNode</li>
+<li>ClusterNode：代表资源，一个资源不管出现在多少链路中，只会有一个ClusterNode。记录的是当前资源被访问的所有统计数据之和。</li>
+</ul>
+<p>DefaultNode记录的是资源在当前链路中的访问数据，用来实现基于链路模式的限流规则。ClusterNode记录的是资源在所有链路中的访问数据，实现默认模式、关联模式的限流规则。</p>
+<p>例如：我们在一个SpringMVC项目中，有两个业务：</p>
+<ul>
+<li>业务1：controller中的资源<code>/order/query</code>访问了service中的资源<code>/goods</code></li>
+<li>业务2：controller中的资源<code>/order/save</code>访问了service中的资源<code>/goods</code></li>
+</ul>
+<p>创建的链路图如下：</p>
+<p><img src="/../../images/image-20210925104726158.png" alt="image-20210925104726158"></p>
+<h2 id="1-3-Entry"><a href="#1-3-Entry" class="headerlink" title="1.3.Entry"></a>1.3.Entry</h2><p>默认情况下，Sentinel会将controller中的方法作为被保护资源，那么问题来了，我们该如何将自己的一段代码标记为一个Sentinel的资源呢？</p>
+<p>Sentinel中的资源用Entry来表示。声明Entry的API示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 资源名可使用任意有业务语义的字符串，比如方法名、接口名或其它可唯一标识的字符串。</span></span><br><span class="line"><span class="keyword">try</span> (<span class="type">Entry</span> <span class="variable">entry</span> <span class="operator">=</span> SphU.entry(<span class="string">&quot;resourceName&quot;</span>)) &#123;</span><br><span class="line">  <span class="comment">// 被保护的业务逻辑</span></span><br><span class="line">  <span class="comment">// do something here...</span></span><br><span class="line">&#125; <span class="keyword">catch</span> (BlockException ex) &#123;</span><br><span class="line">  <span class="comment">// 资源访问阻止，被限流或被降级</span></span><br><span class="line">  <span class="comment">// 在此处进行相应的处理操作</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-3-1-自定义资源"><a href="#1-3-1-自定义资源" class="headerlink" title="1.3.1.自定义资源"></a>1.3.1.自定义资源</h3><p>例如，我们在order-service服务中，将<code>OrderService</code>的<code>queryOrderById()</code>方法标记为一个资源。</p>
+<p>1）首先在order-service中引入sentinel依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--sentinel--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-sentinel<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>2）然后配置Sentinel地址</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">sentinel:</span></span><br><span class="line">      <span class="attr">transport:</span></span><br><span class="line">        <span class="attr">dashboard:</span> <span class="string">localhost:8089</span> <span class="comment"># 这里我的sentinel用了8089的端口</span></span><br></pre></td></tr></table></figure>
+
+<p>3）修改OrderService类的queryOrderById方法</p>
+<p>代码这样来实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> Order <span class="title function_">queryOrderById</span><span class="params">(Long orderId)</span> &#123;</span><br><span class="line">    <span class="comment">// 创建Entry，标记资源，资源名为resource1</span></span><br><span class="line">    <span class="keyword">try</span> (<span class="type">Entry</span> <span class="variable">entry</span> <span class="operator">=</span> SphU.entry(<span class="string">&quot;resource1&quot;</span>)) &#123;</span><br><span class="line">        <span class="comment">// 1.查询订单，这里是假数据</span></span><br><span class="line">        <span class="type">Order</span> <span class="variable">order</span> <span class="operator">=</span> Order.build(<span class="number">101L</span>, <span class="number">4999L</span>, <span class="string">&quot;小米 MIX4&quot;</span>, <span class="number">1</span>, <span class="number">1L</span>, <span class="literal">null</span>);</span><br><span class="line">        <span class="comment">// 2.查询用户，基于Feign的远程调用</span></span><br><span class="line">        <span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> userClient.findById(order.getUserId());</span><br><span class="line">        <span class="comment">// 3.设置</span></span><br><span class="line">        order.setUser(user);</span><br><span class="line">        <span class="comment">// 4.返回</span></span><br><span class="line">        <span class="keyword">return</span> order;</span><br><span class="line">    &#125;<span class="keyword">catch</span> (BlockException e)&#123;</span><br><span class="line">        log.error(<span class="string">&quot;被限流或降级&quot;</span>, e);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>4）访问</p>
+<p>打开浏览器，访问order服务：<a target="_blank" rel="noopener" href="http://localhost:8080/order/101">http://localhost:8080/order/101</a></p>
+<p>然后打开sentinel控制台，查看簇点链路：</p>
+<p><img src="/../../images/image-20210925113122759.png" alt="image-20210925113122759"></p>
+<h3 id="1-3-2-基于注解标记资源"><a href="#1-3-2-基于注解标记资源" class="headerlink" title="1.3.2.基于注解标记资源"></a>1.3.2.基于注解标记资源</h3><p>在之前学习Sentinel的时候，我们知道可以通过给方法添加@SentinelResource注解的形式来标记资源。</p>
+<p><img src="/../../images/image-20210925141507603.png" alt="image-20210925141507603"></p>
+<p>这个是怎么实现的呢？</p>
+<p>来看下我们引入的Sentinel依赖包：</p>
+<p><img src="/../../images/image-20210925115601560.png" alt="image-20210925115601560"></p>
+<p>其中的spring.factories声明需要就是自动装配的配置类，内容如下：</p>
+<p><img src="/../../images/image-20210925115740281.png" alt="image-20210925115740281"></p>
+<p>我们来看下<code>SentinelAutoConfiguration</code>这个类：</p>
+<p><img src="/../../images/image-20210925141553785.png" alt="image-20210925141553785"></p>
+<p>可以看到，在这里声明了一个Bean，<code>SentinelResourceAspect</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * Aspect for methods with &#123;<span class="doctag">@link</span> SentinelResource&#125; annotation.</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> Eric Zhao</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Aspect</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SentinelResourceAspect</span> <span class="keyword">extends</span> <span class="title class_">AbstractSentinelAspectSupport</span> &#123;</span><br><span class="line">	<span class="comment">// 切点是添加了 @SentinelResource注解的类</span></span><br><span class="line">    <span class="meta">@Pointcut(&quot;@annotation(com.alibaba.csp.sentinel.annotation.SentinelResource)&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">sentinelResourceAnnotationPointcut</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line">	</span><br><span class="line">    <span class="comment">// 环绕增强</span></span><br><span class="line">    <span class="meta">@Around(&quot;sentinelResourceAnnotationPointcut()&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Object <span class="title function_">invokeResourceWithSentinel</span><span class="params">(ProceedingJoinPoint pjp)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">        <span class="comment">// 获取受保护的方法</span></span><br><span class="line">        <span class="type">Method</span> <span class="variable">originMethod</span> <span class="operator">=</span> resolveMethod(pjp);</span><br><span class="line">		<span class="comment">// 获取 @SentinelResource注解</span></span><br><span class="line">        <span class="type">SentinelResource</span> <span class="variable">annotation</span> <span class="operator">=</span> originMethod.getAnnotation(SentinelResource.class);</span><br><span class="line">        <span class="keyword">if</span> (annotation == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// Should not go through here.</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;Wrong state for SentinelResource annotation&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 获取注解上的资源名称</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">resourceName</span> <span class="operator">=</span> getResourceName(annotation.value(), originMethod);</span><br><span class="line">        <span class="type">EntryType</span> <span class="variable">entryType</span> <span class="operator">=</span> annotation.entryType();</span><br><span class="line">        <span class="type">int</span> <span class="variable">resourceType</span> <span class="operator">=</span> annotation.resourceType();</span><br><span class="line">        <span class="type">Entry</span> <span class="variable">entry</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 创建资源 Entry</span></span><br><span class="line">            entry = SphU.entry(resourceName, resourceType, entryType, pjp.getArgs());</span><br><span class="line">            <span class="comment">// 执行受保护的方法</span></span><br><span class="line">            <span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> pjp.proceed();</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (BlockException ex) &#123;</span><br><span class="line">            <span class="keyword">return</span> handleBlockException(pjp, annotation, ex);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Throwable ex) &#123;</span><br><span class="line">            Class&lt;? <span class="keyword">extends</span> <span class="title class_">Throwable</span>&gt;[] exceptionsToIgnore = annotation.exceptionsToIgnore();</span><br><span class="line">            <span class="comment">// The ignore list will be checked first.</span></span><br><span class="line">            <span class="keyword">if</span> (exceptionsToIgnore.length &gt; <span class="number">0</span> &amp;&amp; exceptionBelongsTo(ex, exceptionsToIgnore)) &#123;</span><br><span class="line">                <span class="keyword">throw</span> ex;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (exceptionBelongsTo(ex, annotation.exceptionsToTrace())) &#123;</span><br><span class="line">                traceException(ex);</span><br><span class="line">                <span class="keyword">return</span> handleFallback(pjp, annotation, ex);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="comment">// No fallback function can handle the exception, so throw it out.</span></span><br><span class="line">            <span class="keyword">throw</span> ex;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (entry != <span class="literal">null</span>) &#123;</span><br><span class="line">                entry.exit(<span class="number">1</span>, pjp.getArgs());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>简单来说，@SentinelResource注解就是一个标记，而Sentinel基于AOP思想，对被标记的方法做环绕增强，完成资源（<code>Entry</code>）的创建。</p>
+<h2 id="1-4-Context"><a href="#1-4-Context" class="headerlink" title="1.4.Context"></a>1.4.Context</h2><p>上一节，我们发现簇点链路中除了controller方法、service方法两个资源外，还多了一个默认的入口节点：</p>
+<p>sentinel_spring_web_context，是一个EntranceNode类型的节点</p>
+<p>这个节点是在初始化Context的时候由Sentinel帮我们创建的。</p>
+<h3 id="1-4-1-什么是Context"><a href="#1-4-1-什么是Context" class="headerlink" title="1.4.1.什么是Context"></a>1.4.1.什么是Context</h3><p>那么，什么是Context呢？</p>
+<ul>
+<li>Context 代表调用链路上下文，贯穿一次调用链路中的所有资源（ <code>Entry</code>），基于ThreadLocal。</li>
+<li>Context 维持着入口节点（<code>entranceNode</code>）、本次调用链路的 curNode（当前资源节点）、调用来源（<code>origin</code>）等信息。</li>
+<li>后续的Slot都可以通过Context拿到DefaultNode或者ClusterNode，从而获取统计数据，完成规则判断</li>
+<li>Context初始化的过程中，会创建EntranceNode，contextName就是EntranceNode的名称</li>
+</ul>
+<p>对应的API如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建context，包含两个参数：context名称、 来源名称</span></span><br><span class="line">ContextUtil.enter(<span class="string">&quot;contextName&quot;</span>, <span class="string">&quot;originName&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="1-4-2-Context的初始化"><a href="#1-4-2-Context的初始化" class="headerlink" title="1.4.2.Context的初始化"></a>1.4.2.Context的初始化</h3><p>那么这个Context又是在何时完成初始化的呢？</p>
+<h4 id="1-4-2-1-自动装配"><a href="#1-4-2-1-自动装配" class="headerlink" title="1.4.2.1.自动装配"></a>1.4.2.1.自动装配</h4><p>来看下我们引入的Sentinel依赖包：</p>
+<p><img src="/../../images/image-20210925115601560.png" alt="image-20210925115601560"></p>
+<p>其中的spring.factories声明需要就是自动装配的配置类，内容如下：</p>
+<p><img src="/../../images/image-20210925115740281.png" alt="image-20210925115740281"></p>
+<p>我们先看SentinelWebAutoConfiguration这个类：</p>
+<p><img src="/../../images/image-20210925115824345.png" alt="image-20210925115824345"></p>
+<p>这个类实现了WebMvcConfigurer，我们知道这个是SpringMVC自定义配置用到的类，可以配置HandlerInterceptor：</p>
+<p><img src="/../../images/image-20210925115946064.png" alt="image-20210925115946064"></p>
+<p>可以看到这里配置了一个<code>SentinelWebInterceptor</code>的拦截器。</p>
+<p><code>SentinelWebInterceptor</code>的声明如下：</p>
+<p><img src="/../../images/image-20210925120119030.png" alt="image-20210925120119030"></p>
+<p>发现它继承了<code>AbstractSentinelInterceptor</code>这个类。</p>
+<p><img src="/../../images/image-20210925120221883.png" alt="image-20210925120221883"></p>
+<p><code>HandlerInterceptor</code>拦截器会拦截一切进入controller的方法，执行<code>preHandle</code>前置拦截方法，而Context的初始化就是在这里完成的。</p>
+<h4 id="1-4-2-2-AbstractSentinelInterceptor"><a href="#1-4-2-2-AbstractSentinelInterceptor" class="headerlink" title="1.4.2.2.AbstractSentinelInterceptor"></a>1.4.2.2.AbstractSentinelInterceptor</h4><p><code>HandlerInterceptor</code>拦截器会拦截一切进入controller的方法，执行<code>preHandle</code>前置拦截方法，而Context的初始化就是在这里完成的。</p>
+<p>我们来看看这个类的<code>preHandle</code>实现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">preHandle</span><span class="params">(HttpServletRequest request, HttpServletResponse response, Object handler)</span></span><br><span class="line">    <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 获取资源名称，一般是controller方法的@RequestMapping路径，例如/order/&#123;orderId&#125;</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">resourceName</span> <span class="operator">=</span> getResourceName(request);</span><br><span class="line">        <span class="keyword">if</span> (StringUtil.isEmpty(resourceName)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 从request中获取请求来源，将来做 授权规则 判断时会用</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">origin</span> <span class="operator">=</span> parseOrigin(request);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 获取 contextName，默认是sentinel_spring_web_context</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">contextName</span> <span class="operator">=</span> getContextName(request);</span><br><span class="line">        <span class="comment">// 创建 Context</span></span><br><span class="line">        ContextUtil.enter(contextName, origin);</span><br><span class="line">        <span class="comment">// 创建资源，名称就是当前请求的controller方法的映射路径</span></span><br><span class="line">        <span class="type">Entry</span> <span class="variable">entry</span> <span class="operator">=</span> SphU.entry(resourceName, ResourceTypeConstants.COMMON_WEB, EntryType.IN);</span><br><span class="line">        request.setAttribute(baseWebMvcConfig.getRequestAttributeName(), entry);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (BlockException e) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            handleBlockException(request, response, e);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            ContextUtil.exit();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="1-4-2-3-ContextUtil"><a href="#1-4-2-3-ContextUtil" class="headerlink" title="1.4.2.3.ContextUtil"></a>1.4.2.3.ContextUtil</h4><p>创建Context的方法就是<code> ContextUtil.enter(contextName, origin);</code></p>
+<p>我们进入该方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Context <span class="title function_">enter</span><span class="params">(String name, String origin)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (Constants.CONTEXT_DEFAULT_NAME.equals(name)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ContextNameDefineException</span>(</span><br><span class="line">            <span class="string">&quot;The &quot;</span> + Constants.CONTEXT_DEFAULT_NAME + <span class="string">&quot; can&#x27;t be permit to defined!&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> trueEnter(name, origin);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入<code>trueEnter</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">static</span> Context <span class="title function_">trueEnter</span><span class="params">(String name, String origin)</span> &#123;</span><br><span class="line">    <span class="comment">// 尝试获取context</span></span><br><span class="line">    <span class="type">Context</span> <span class="variable">context</span> <span class="operator">=</span> contextHolder.get();</span><br><span class="line">    <span class="comment">// 判空</span></span><br><span class="line">    <span class="keyword">if</span> (context == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果为空，开始初始化</span></span><br><span class="line">        Map&lt;String, DefaultNode&gt; localCacheNameMap = contextNameNodeMap;</span><br><span class="line">        <span class="comment">// 尝试获取入口节点</span></span><br><span class="line">        <span class="type">DefaultNode</span> <span class="variable">node</span> <span class="operator">=</span> localCacheNameMap.get(name);</span><br><span class="line">        <span class="keyword">if</span> (node == <span class="literal">null</span>) &#123;</span><br><span class="line">            LOCK.lock();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                node = contextNameNodeMap.get(name);</span><br><span class="line">                <span class="keyword">if</span> (node == <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// 入口节点为空，初始化入口节点 EntranceNode</span></span><br><span class="line">                    node = <span class="keyword">new</span> <span class="title class_">EntranceNode</span>(<span class="keyword">new</span> <span class="title class_">StringResourceWrapper</span>(name, EntryType.IN), <span class="literal">null</span>);</span><br><span class="line">                    <span class="comment">// 添加入口节点到 ROOT</span></span><br><span class="line">                    Constants.ROOT.addChild(node);</span><br><span class="line">                    <span class="comment">// 将入口节点放入缓存</span></span><br><span class="line">                    Map&lt;String, DefaultNode&gt; newMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(contextNameNodeMap.size() + <span class="number">1</span>);</span><br><span class="line">                    newMap.putAll(contextNameNodeMap);</span><br><span class="line">                    newMap.put(name, node);</span><br><span class="line">                    contextNameNodeMap = newMap;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                LOCK.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 创建Context，参数为：入口节点 和 contextName</span></span><br><span class="line">        context = <span class="keyword">new</span> <span class="title class_">Context</span>(node, name);</span><br><span class="line">        <span class="comment">// 设置请求来源 origin</span></span><br><span class="line">        context.setOrigin(origin);</span><br><span class="line">        <span class="comment">// 放入ThreadLocal</span></span><br><span class="line">        contextHolder.set(context);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 返回</span></span><br><span class="line">    <span class="keyword">return</span> context;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="2-ProcessorSlotChain执行流程"><a href="#2-ProcessorSlotChain执行流程" class="headerlink" title="2.ProcessorSlotChain执行流程"></a>2.ProcessorSlotChain执行流程</h1><p>接下来我们跟踪源码，验证下ProcessorSlotChain的执行流程。</p>
+<h2 id="2-1-入口"><a href="#2-1-入口" class="headerlink" title="2.1.入口"></a>2.1.入口</h2><p>首先，回到一切的入口，<code>AbstractSentinelInterceptor</code>类的<code>preHandle</code>方法：</p>
+<p><img src="/../../images/image-20210925142313050.png" alt="image-20210925142313050"></p>
+<p>还有，<code>SentinelResourceAspect</code>的环绕增强方法：</p>
+<p><img src="/../../images/image-20210925142438552.png" alt="image-20210925142438552"></p>
+<p>可以看到，任何一个资源必定要执行<code>SphU.entry()</code>这个方法:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Entry <span class="title function_">entry</span><span class="params">(String name, <span class="type">int</span> resourceType, EntryType trafficType, Object[] args)</span></span><br><span class="line">    <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">    <span class="keyword">return</span> Env.sph.entryWithType(name, resourceType, trafficType, <span class="number">1</span>, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>继续进入<code>Env.sph.entryWithType(name, resourceType, trafficType, 1, args);</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> Entry <span class="title function_">entryWithType</span><span class="params">(String name, <span class="type">int</span> resourceType, EntryType entryType, <span class="type">int</span> count, <span class="type">boolean</span> prioritized,</span></span><br><span class="line"><span class="params">                           Object[] args)</span> <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">    <span class="comment">// 将 资源名称等基本信息 封装为一个 StringResourceWrapper对象</span></span><br><span class="line">    <span class="type">StringResourceWrapper</span> <span class="variable">resource</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringResourceWrapper</span>(name, entryType, resourceType);</span><br><span class="line">    <span class="comment">// 继续</span></span><br><span class="line">    <span class="keyword">return</span> entryWithPriority(resource, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入<code>entryWithPriority</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Entry <span class="title function_">entryWithPriority</span><span class="params">(ResourceWrapper resourceWrapper, <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span></span><br><span class="line">    <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">    <span class="comment">// 获取 Context</span></span><br><span class="line">    <span class="type">Context</span> <span class="variable">context</span> <span class="operator">=</span> ContextUtil.getContext();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (context == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// Using default context.</span></span><br><span class="line">        context = InternalContextUtil.internalEnter(Constants.CONTEXT_DEFAULT_NAME);</span><br><span class="line">    &#125;</span><br><span class="line">、	<span class="comment">// 获取 Slot执行链，同一个资源，会创建一个执行链，放入缓存</span></span><br><span class="line">    ProcessorSlot&lt;Object&gt; chain = lookProcessChain(resourceWrapper);</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 创建 Entry，并将 resource、chain、context 记录在 Entry中</span></span><br><span class="line">    <span class="type">Entry</span> <span class="variable">e</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CtEntry</span>(resourceWrapper, chain, context);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 执行 slotChain</span></span><br><span class="line">        chain.entry(context, resourceWrapper, <span class="literal">null</span>, count, prioritized, args);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (BlockException e1) &#123;</span><br><span class="line">        e.exit(count, args);</span><br><span class="line">        <span class="keyword">throw</span> e1;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e1) &#123;</span><br><span class="line">        <span class="comment">// This should not happen, unless there are errors existing in Sentinel internal.</span></span><br><span class="line">        RecordLog.info(<span class="string">&quot;Sentinel unexpected exception&quot;</span>, e1);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> e;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>在这段代码中，会获取<code>ProcessorSlotChain</code>对象，然后基于chain.entry()开始执行slotChain中的每一个Slot.  而这里创建的是其实现类：DefaultProcessorSlotChain.</p>
+<p>获取ProcessorSlotChain以后会保存到一个Map中，key是ResourceWrapper，值是ProcessorSlotChain.</p>
+<p>所以，<strong>一个资源只会有一个ProcessorSlotChain</strong>.</p>
+<h2 id="2-2-DefaultProcessorSlotChain"><a href="#2-2-DefaultProcessorSlotChain" class="headerlink" title="2.2.DefaultProcessorSlotChain"></a>2.2.DefaultProcessorSlotChain</h2><p>我们进入DefaultProcessorSlotChain的entry方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, Object t, <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span></span><br><span class="line">    <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// first，就是责任链中的第一个 slot</span></span><br><span class="line">    first.transformEntry(context, resourceWrapper, t, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里的first，类型是AbstractLinkedProcessorSlot：</p>
+<p><img src="/../../images/image-20210925144355865.png" alt="image-20210925144355865"></p>
+<p>看下继承关系：</p>
+<p><img src="/../../images/image-20210925144010507.png" alt="image-20210925144010507"></p>
+<p>因此，first一定是这些实现类中的一个，按照最早讲的责任链顺序，first应该就是 <code>NodeSelectorSlot</code>。</p>
+<p>不过，既然是基于责任链模式，所以这里只要记住下一个slot就可以了，也就是next：</p>
+<p><img src="/../../images/image-20210925144233302.png" alt="image-20210925144233302"></p>
+<p>next确实是NodeSelectSlot类型。</p>
+<p>而NodeSelectSlot的next一定是ClusterBuilderSlot，依次类推：</p>
+<p><img src="/../../images/image-20210925101327080.png" alt="image-20210925101327080"></p>
+<p>责任链就建立起来了。</p>
+<h2 id="2-3-NodeSelectorSlot"><a href="#2-3-NodeSelectorSlot" class="headerlink" title="2.3.NodeSelectorSlot"></a>2.3.NodeSelectorSlot</h2><p>NodeSelectorSlot负责构建簇点链路中的节点（DefaultNode），将这些节点形成链路树。</p>
+<p>核心代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, Object obj, <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span></span><br><span class="line">    <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">  	<span class="comment">// 尝试获取 当前资源的 DefaultNode</span></span><br><span class="line">    <span class="type">DefaultNode</span> <span class="variable">node</span> <span class="operator">=</span> map.get(context.getName());</span><br><span class="line">    <span class="keyword">if</span> (node == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">            node = map.get(context.getName());</span><br><span class="line">            <span class="keyword">if</span> (node == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 如果为空，为当前资源创建一个新的 DefaultNode</span></span><br><span class="line">                node = <span class="keyword">new</span> <span class="title class_">DefaultNode</span>(resourceWrapper, <span class="literal">null</span>);</span><br><span class="line">                HashMap&lt;String, DefaultNode&gt; cacheMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;String, DefaultNode&gt;(map.size());</span><br><span class="line">                cacheMap.putAll(map);</span><br><span class="line">                <span class="comment">// 放入缓存中，注意这里的 key是contextName，</span></span><br><span class="line">                <span class="comment">// 这样不同链路进入相同资源，就会创建多个 DefaultNode</span></span><br><span class="line">                cacheMap.put(context.getName(), node);</span><br><span class="line">                map = cacheMap;</span><br><span class="line">                <span class="comment">// 当前节点加入上一节点的 child中，这样就构成了调用链路树</span></span><br><span class="line">                ((DefaultNode) context.getLastNode()).addChild(node);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// context中的curNode（当前节点）设置为新的 node</span></span><br><span class="line">    context.setCurNode(node);</span><br><span class="line">    <span class="comment">// 执行下一个 slot</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这个Slot完成了这么几件事情：</p>
+<ul>
+<li>为当前资源创建 DefaultNode</li>
+<li>将DefaultNode放入缓存中，key是contextName，这样不同链路入口的请求，将会创建多个DefaultNode，相同链路则只有一个DefaultNode</li>
+<li>将当前资源的DefaultNode设置为上一个资源的childNode</li>
+<li>将当前资源的DefaultNode设置为Context中的curNode（当前节点）</li>
+</ul>
+<p>下一个slot，就是ClusterBuilderSlot</p>
+<h2 id="2-4-ClusterBuilderSlot"><a href="#2-4-ClusterBuilderSlot" class="headerlink" title="2.4.ClusterBuilderSlot"></a>2.4.ClusterBuilderSlot</h2><p>ClusterBuilderSlot负责构建某个资源的ClusterNode，核心代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node,</span></span><br><span class="line"><span class="params">                  <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span></span><br><span class="line">    <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 判空，注意ClusterNode是共享的成员变量，也就是说一个资源只有一个ClusterNode，与链路无关</span></span><br><span class="line">    <span class="keyword">if</span> (clusterNode == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">            <span class="keyword">if</span> (clusterNode == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="comment">// 创建 cluster node.</span></span><br><span class="line">                clusterNode = <span class="keyword">new</span> <span class="title class_">ClusterNode</span>(resourceWrapper.getName(), resourceWrapper.getResourceType());</span><br><span class="line">                HashMap&lt;ResourceWrapper, ClusterNode&gt; newMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(Math.max(clusterNodeMap.size(), <span class="number">16</span>));</span><br><span class="line">                newMap.putAll(clusterNodeMap);</span><br><span class="line">                <span class="comment">// 放入缓存，可以是nodeId，也就是resource名称</span></span><br><span class="line">                newMap.put(node.getId(), clusterNode);</span><br><span class="line">                clusterNodeMap = newMap;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 将资源的 DefaultNode与 ClusterNode关联</span></span><br><span class="line">    node.setClusterNode(clusterNode);</span><br><span class="line">	<span class="comment">// 记录请求来源 origin 将 origin放入 entry</span></span><br><span class="line">    <span class="keyword">if</span> (!<span class="string">&quot;&quot;</span>.equals(context.getOrigin())) &#123;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">originNode</span> <span class="operator">=</span> node.getClusterNode().getOrCreateOriginNode(context.getOrigin());</span><br><span class="line">        context.getCurEntry().setOriginNode(originNode);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 继续下一个slot</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-5-StatisticSlot"><a href="#2-5-StatisticSlot" class="headerlink" title="2.5.StatisticSlot"></a>2.5.StatisticSlot</h2><p>StatisticSlot负责统计实时调用数据，包括运行信息（访问次数、线程数）、来源信息等。</p>
+<p>StatisticSlot是实现限流的关键，其中基于<strong>滑动时间窗口算法</strong>维护了计数器，统计进入某个资源的请求次数。</p>
+<p>核心代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node, </span></span><br><span class="line"><span class="params">                  <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 放行到下一个 slot，做限流、降级等判断</span></span><br><span class="line">        fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 请求通过了, 线程计数器 +1 ，用作线程隔离</span></span><br><span class="line">        node.increaseThreadNum();</span><br><span class="line">        <span class="comment">// 请求计数器 +1 用作限流</span></span><br><span class="line">        node.addPassRequest(count);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (context.getCurEntry().getOriginNode() != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 如果有 origin，来源计数器也都要 +1</span></span><br><span class="line">            context.getCurEntry().getOriginNode().increaseThreadNum();</span><br><span class="line">            context.getCurEntry().getOriginNode().addPassRequest(count);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (resourceWrapper.getEntryType() == EntryType.IN) &#123;</span><br><span class="line">            <span class="comment">// 如果是入口资源，还要给全局计数器 +1.</span></span><br><span class="line">            Constants.ENTRY_NODE.increaseThreadNum();</span><br><span class="line">            Constants.ENTRY_NODE.addPassRequest(count);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 请求通过后的回调.</span></span><br><span class="line">        <span class="keyword">for</span> (ProcessorSlotEntryCallback&lt;DefaultNode&gt; handler : StatisticSlotCallbackRegistry.getEntryCallbacks()) &#123;</span><br><span class="line">            handler.onPass(context, resourceWrapper, node, count, args);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">        <span class="comment">// 各种异常处理就省略了。。。</span></span><br><span class="line">        context.getCurEntry().setError(e);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">throw</span> e;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>另外，需要注意的是，所有的计数+1动作都包括两部分，以<code> node.addPassRequest(count);</code>为例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addPassRequest</span><span class="params">(<span class="type">int</span> count)</span> &#123;</span><br><span class="line">    <span class="comment">// DefaultNode的计数器，代表当前链路的 计数器</span></span><br><span class="line">    <span class="built_in">super</span>.addPassRequest(count);</span><br><span class="line">    <span class="comment">// ClusterNode计数器，代表当前资源的 总计数器</span></span><br><span class="line">    <span class="built_in">this</span>.clusterNode.addPassRequest(count);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>具体计数方式，我们后续再看。</p>
+<p>接下来，进入规则校验的相关slot了，依次是：</p>
+<ul>
+<li>AuthoritySlot：负责授权规则（来源控制）</li>
+<li>SystemSlot：负责系统保护规则</li>
+<li>ParamFlowSlot：负责热点参数限流规则</li>
+<li>FlowSlot：负责限流规则</li>
+<li>DegradeSlot：负责降级规则</li>
+</ul>
+<h2 id="2-6-AuthoritySlot"><a href="#2-6-AuthoritySlot" class="headerlink" title="2.6.AuthoritySlot"></a>2.6.AuthoritySlot</h2><p>负责请求来源origin的授权规则判断，如图：</p>
+<p><img src="/../../images/image-20210925152626648.png" alt="image-20210925152626648"></p>
+<p>核心API：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node, <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span></span><br><span class="line">    <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 校验黑白名单</span></span><br><span class="line">    checkBlackWhiteAuthority(resourceWrapper, context);</span><br><span class="line">    <span class="comment">// 进入下一个 slot</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>黑白名单校验的逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">checkBlackWhiteAuthority</span><span class="params">(ResourceWrapper resource, Context context)</span> <span class="keyword">throws</span> AuthorityException &#123;</span><br><span class="line">    <span class="comment">// 获取授权规则</span></span><br><span class="line">    Map&lt;String, Set&lt;AuthorityRule&gt;&gt; authorityRules = AuthorityRuleManager.getAuthorityRules();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (authorityRules == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    Set&lt;AuthorityRule&gt; rules = authorityRules.get(resource.getName());</span><br><span class="line">    <span class="keyword">if</span> (rules == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 遍历规则并判断</span></span><br><span class="line">    <span class="keyword">for</span> (AuthorityRule rule : rules) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!AuthorityRuleChecker.passCheck(rule, context)) &#123;</span><br><span class="line">            <span class="comment">// 规则不通过，直接抛出异常</span></span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">AuthorityException</span>(context.getOrigin(), rule);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再看下<code>AuthorityRuleChecker.passCheck(rule, context)</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">passCheck</span><span class="params">(AuthorityRule rule, Context context)</span> &#123;</span><br><span class="line">    <span class="comment">// 得到请求来源 origin</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">requester</span> <span class="operator">=</span> context.getOrigin();</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 来源为空，或者规则为空，都直接放行</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtil.isEmpty(requester) || StringUtil.isEmpty(rule.getLimitApp())) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// rule.getLimitApp()得到的就是 白名单 或 黑名单 的字符串，这里先用 indexOf方法判断</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">pos</span> <span class="operator">=</span> rule.getLimitApp().indexOf(requester);</span><br><span class="line">    <span class="type">boolean</span> <span class="variable">contain</span> <span class="operator">=</span> pos &gt; -<span class="number">1</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (contain) &#123;</span><br><span class="line">        <span class="comment">// 如果包含 origin，还要进一步做精确判断，把名单列表以&quot;,&quot;分割，逐个判断</span></span><br><span class="line">        <span class="type">boolean</span> <span class="variable">exactlyMatch</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">        String[] appArray = rule.getLimitApp().split(<span class="string">&quot;,&quot;</span>);</span><br><span class="line">        <span class="keyword">for</span> (String app : appArray) &#123;</span><br><span class="line">            <span class="keyword">if</span> (requester.equals(app)) &#123;</span><br><span class="line">                exactlyMatch = <span class="literal">true</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        contain = exactlyMatch;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 如果是黑名单，并且包含origin，则返回false</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">strategy</span> <span class="operator">=</span> rule.getStrategy();</span><br><span class="line">    <span class="keyword">if</span> (strategy == RuleConstant.AUTHORITY_BLACK &amp;&amp; contain) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 如果是白名单，并且不包含origin，则返回false</span></span><br><span class="line">    <span class="keyword">if</span> (strategy == RuleConstant.AUTHORITY_WHITE &amp;&amp; !contain) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 其它情况返回true</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-7-SystemSlot"><a href="#2-7-SystemSlot" class="headerlink" title="2.7.SystemSlot"></a>2.7.SystemSlot</h2><p>SystemSlot是对系统保护的规则校验：</p>
+<p><img src="/../../images/image-20210925153228036.png" alt="image-20210925153228036"></p>
+<p>核心API：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node, </span></span><br><span class="line"><span class="params">                  <span class="type">int</span> count,<span class="type">boolean</span> prioritized, Object... args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 系统规则校验</span></span><br><span class="line">    SystemRuleManager.checkSystem(resourceWrapper);</span><br><span class="line">    <span class="comment">// 进入下一个 slot</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>来看下<code>SystemRuleManager.checkSystem(resourceWrapper);</code>的代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">checkSystem</span><span class="params">(ResourceWrapper resourceWrapper)</span> <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">    <span class="keyword">if</span> (resourceWrapper == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// Ensure the checking switch is on.</span></span><br><span class="line">    <span class="keyword">if</span> (!checkSystemStatus.get()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 只针对入口资源做校验，其它直接返回</span></span><br><span class="line">    <span class="keyword">if</span> (resourceWrapper.getEntryType() != EntryType.IN) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 全局 QPS校验</span></span><br><span class="line">    <span class="type">double</span> <span class="variable">currentQps</span> <span class="operator">=</span> Constants.ENTRY_NODE == <span class="literal">null</span> ? <span class="number">0.0</span> : Constants.ENTRY_NODE.successQps();</span><br><span class="line">    <span class="keyword">if</span> (currentQps &gt; qps) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SystemBlockException</span>(resourceWrapper.getName(), <span class="string">&quot;qps&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 全局 线程数 校验</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">currentThread</span> <span class="operator">=</span> Constants.ENTRY_NODE == <span class="literal">null</span> ? <span class="number">0</span> : Constants.ENTRY_NODE.curThreadNum();</span><br><span class="line">    <span class="keyword">if</span> (currentThread &gt; maxThread) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SystemBlockException</span>(resourceWrapper.getName(), <span class="string">&quot;thread&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 全局平均 RT校验</span></span><br><span class="line">    <span class="type">double</span> <span class="variable">rt</span> <span class="operator">=</span> Constants.ENTRY_NODE == <span class="literal">null</span> ? <span class="number">0</span> : Constants.ENTRY_NODE.avgRt();</span><br><span class="line">    <span class="keyword">if</span> (rt &gt; maxRt) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SystemBlockException</span>(resourceWrapper.getName(), <span class="string">&quot;rt&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 全局 系统负载 校验</span></span><br><span class="line">    <span class="keyword">if</span> (highestSystemLoadIsSet &amp;&amp; getCurrentSystemAvgLoad() &gt; highestSystemLoad) &#123;</span><br><span class="line">        <span class="keyword">if</span> (!checkBbr(currentThread)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SystemBlockException</span>(resourceWrapper.getName(), <span class="string">&quot;load&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 全局 CPU使用率 校验</span></span><br><span class="line">    <span class="keyword">if</span> (highestCpuUsageIsSet &amp;&amp; getCurrentCpuUsage() &gt; highestCpuUsage) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">SystemBlockException</span>(resourceWrapper.getName(), <span class="string">&quot;cpu&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="2-8-ParamFlowSlot"><a href="#2-8-ParamFlowSlot" class="headerlink" title="2.8.ParamFlowSlot"></a>2.8.ParamFlowSlot</h2><p>ParamFlowSlot就是热点参数限流，如图：</p>
+<p><img src="/../../images/image-20210925153719891.png" alt="image-20210925153719891"></p>
+<p>是针对进入资源的请求，针对不同的请求参数值分别统计QPS的限流方式。</p>
+<ul>
+<li><p>这里的单机阈值，就是最大令牌数量：maxCount</p>
+</li>
+<li><p>这里的统计窗口时长，就是统计时长：duration</p>
+</li>
+</ul>
+<p>含义是每隔duration时间长度内，最多生产maxCount个令牌，上图配置的含义是每1秒钟生产2个令牌。</p>
+<p>核心API：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node,</span></span><br><span class="line"><span class="params">                  <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 如果没有设置热点规则，直接放行</span></span><br><span class="line">    <span class="keyword">if</span> (!ParamFlowRuleManager.hasRules(resourceWrapper.getName())) &#123;</span><br><span class="line">        fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 热点规则判断</span></span><br><span class="line">    checkFlow(resourceWrapper, count, args);</span><br><span class="line">    <span class="comment">// 进入下一个 slot</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-8-1-令牌桶"><a href="#2-8-1-令牌桶" class="headerlink" title="2.8.1.令牌桶"></a>2.8.1.令牌桶</h3><p>热点规则判断采用了令牌桶算法来实现参数限流，为每一个不同参数值设置令牌桶，Sentinel的令牌桶有两部分组成：</p>
+<p><img src="/../../images/image-20210925163744108.png" alt="image-20210925163744108"></p>
+<p>这两个Map的key都是请求的参数值，value却不同，其中：</p>
+<ul>
+<li>tokenCounters：用来记录剩余令牌数量</li>
+<li>timeCounters：用来记录上一个请求的时间</li>
+</ul>
+<p>当一个携带参数的请求到来后，基本判断流程是这样的：</p>
+<p><img src="/../../images/sentinel.jpg" alt="sentinel"></p>
+<h2 id="2-9-FlowSlot"><a href="#2-9-FlowSlot" class="headerlink" title="2.9.FlowSlot"></a>2.9.FlowSlot</h2><p>FlowSlot是负责限流规则的判断，如图：</p>
+<p><img src="/../../images/image-20210925172542274.png" alt="image-20210925172542274"></p>
+<p>包括：</p>
+<ul>
+<li>三种流控模式：直接模式、关联模式、链路模式</li>
+<li>三种流控效果：快速失败、warm up、排队等待</li>
+</ul>
+<p>三种流控模式，从底层<strong>数据统计</strong>角度，分为两类：</p>
+<ul>
+<li>对进入资源的所有请求（ClusterNode）做限流统计：直接模式、关联模式</li>
+<li>对进入资源的部分链路（DefaultNode）做限流统计：链路模式</li>
+</ul>
+<p>三种流控效果，从<strong>限流算法</strong>来看，分为两类：</p>
+<ul>
+<li>滑动时间窗口算法：快速失败、warm up</li>
+<li>漏桶算法：排队等待效果</li>
+</ul>
+<h3 id="2-9-1-核心流程"><a href="#2-9-1-核心流程" class="headerlink" title="2.9.1.核心流程"></a>2.9.1.核心流程</h3><p>核心API如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node, <span class="type">int</span> count,</span></span><br><span class="line"><span class="params">                  <span class="type">boolean</span> prioritized, Object... args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 限流规则检测</span></span><br><span class="line">    checkFlow(resourceWrapper, context, node, count, prioritized);</span><br><span class="line">	<span class="comment">// 放行</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>checkFlow方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">checkFlow</span><span class="params">(ResourceWrapper resource, Context context, DefaultNode node, <span class="type">int</span> count, <span class="type">boolean</span> prioritized)</span></span><br><span class="line">    <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">    <span class="comment">// checker是 FlowRuleChecker 类的一个对象</span></span><br><span class="line">    checker.checkFlow(ruleProvider, resource, context, node, count, prioritized);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>跟入FlowRuleChecker：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">checkFlow</span><span class="params">(Function&lt;String, Collection&lt;FlowRule&gt;&gt; ruleProvider, </span></span><br><span class="line"><span class="params">                      ResourceWrapper resource,Context context, DefaultNode node,</span></span><br><span class="line"><span class="params">                      <span class="type">int</span> count, <span class="type">boolean</span> prioritized)</span> <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">        <span class="keyword">if</span> (ruleProvider == <span class="literal">null</span> || resource == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 获取当前资源的所有限流规则</span></span><br><span class="line">        Collection&lt;FlowRule&gt; rules = ruleProvider.apply(resource.getName());</span><br><span class="line">        <span class="keyword">if</span> (rules != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (FlowRule rule : rules) &#123;</span><br><span class="line">                <span class="comment">// 遍历，逐个规则做校验</span></span><br><span class="line">                <span class="keyword">if</span> (!canPassCheck(rule, context, node, count, prioritized)) &#123;</span><br><span class="line">                    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">FlowException</span>(rule.getLimitApp(), rule);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这里的FlowRule就是限流规则接口，其中的几个成员变量，刚好对应表单参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FlowRule</span> <span class="keyword">extends</span> <span class="title class_">AbstractRule</span> &#123;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 阈值类型 (0: 线程, 1: QPS).</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">grade</span> <span class="operator">=</span> RuleConstant.FLOW_GRADE_QPS;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 阈值.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">double</span> count;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 三种限流模式.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> RuleConstant#STRATEGY_DIRECT&#125; 直连模式;</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> RuleConstant#STRATEGY_RELATE&#125; 关联模式;</span></span><br><span class="line"><span class="comment">     * &#123;<span class="doctag">@link</span> RuleConstant#STRATEGY_CHAIN&#125; 链路模式.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">strategy</span> <span class="operator">=</span> RuleConstant.STRATEGY_DIRECT;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关联模式关联的资源名称.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> String refResource;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 3种流控效果.</span></span><br><span class="line"><span class="comment">     * 0. 快速失败, 1. warm up, 2. 排队等待, 3. warm up + 排队等待</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">controlBehavior</span> <span class="operator">=</span> RuleConstant.CONTROL_BEHAVIOR_DEFAULT;</span><br><span class="line">	<span class="comment">// 预热时长</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">warmUpPeriodSec</span> <span class="operator">=</span> <span class="number">10</span>;</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 队列最大等待时间.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> <span class="variable">maxQueueingTimeMs</span> <span class="operator">=</span> <span class="number">500</span>;</span><br><span class="line">    <span class="comment">// 。。。 略</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>校验的逻辑定义在<code>FlowRuleChecker</code>的<code>canPassCheck</code>方法中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">canPassCheck</span><span class="params">(<span class="comment">/*@NonNull*/</span> FlowRule rule, Context context, DefaultNode node, <span class="type">int</span> acquireCount,</span></span><br><span class="line"><span class="params">                            <span class="type">boolean</span> prioritized)</span> &#123;</span><br><span class="line">    <span class="comment">// 获取限流资源名称</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">limitApp</span> <span class="operator">=</span> rule.getLimitApp();</span><br><span class="line">    <span class="keyword">if</span> (limitApp == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 校验规则</span></span><br><span class="line">    <span class="keyword">return</span> passLocalCheck(rule, context, node, acquireCount, prioritized);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进入<code>passLocalCheck()</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">passLocalCheck</span><span class="params">(FlowRule rule, Context context, DefaultNode node,</span></span><br><span class="line"><span class="params">                                      <span class="type">int</span> acquireCount,  <span class="type">boolean</span> prioritized)</span> &#123;</span><br><span class="line">    <span class="comment">// 基于限流模式判断要统计的节点， </span></span><br><span class="line">    <span class="comment">// 如果是直连模式，关联模式，对ClusterNode统计，如果是链路模式，则对DefaultNode统计</span></span><br><span class="line">    <span class="type">Node</span> <span class="variable">selectedNode</span> <span class="operator">=</span> selectNodeByRequesterAndStrategy(rule, context, node);</span><br><span class="line">    <span class="keyword">if</span> (selectedNode == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 判断规则</span></span><br><span class="line">    <span class="keyword">return</span> rule.getRater().canPass(selectedNode, acquireCount, prioritized);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这里对规则的判断先要通过<code>FlowRule#getRater()</code>获取流量控制器<code>TrafficShapingController</code>，然后再做限流。</p>
+<p>而<code>TrafficShapingController</code>有3种实现：</p>
+<p><img src="/../../images/image-20210925175221211.png" alt="image-20210925175221211"></p>
+<ul>
+<li>DefaultController：快速失败，默认的方式，基于滑动时间窗口算法</li>
+<li>WarmUpController：预热模式，基于滑动时间窗口算法，只不过阈值是动态的</li>
+<li>RateLimiterController：排队等待模式，基于漏桶算法</li>
+</ul>
+<p>最终的限流判断都在TrafficShapingController的canPass方法中。</p>
+<h3 id="2-9-2-滑动时间窗口"><a href="#2-9-2-滑动时间窗口" class="headerlink" title="2.9.2.滑动时间窗口"></a>2.9.2.滑动时间窗口</h3><p>滑动时间窗口的功能分两部分来看：</p>
+<ul>
+<li>一是时间区间窗口的QPS计数功能，这个是在StatisticSlot中调用的</li>
+<li>二是对滑动窗口内的时间区间窗口QPS累加，这个是在FlowRule中调用的</li>
+</ul>
+<p>先来看时间区间窗口的QPS计数功能。</p>
+<h4 id="2-9-2-1-时间窗口请求量统计"><a href="#2-9-2-1-时间窗口请求量统计" class="headerlink" title="2.9.2.1.时间窗口请求量统计"></a>2.9.2.1.时间窗口请求量统计</h4><p>回顾2.5章节中的StatisticSlot部分，有这样一段代码：</p>
+<p><img src="/../../images/image-20210925180522926.png" alt="image-20210925180522926"></p>
+<p>就是在统计通过该节点的QPS，我们跟入看看，这里进入了DefaultNode内部：</p>
+<p><img src="/../../images/image-20210925180619492.png" alt="image-20210925180619492"></p>
+<p>发现同时对<code>DefaultNode</code>和<code>ClusterNode</code>在做QPS统计，我们知道<code>DefaultNode</code>和<code>ClusterNode</code>都是<code>StatisticNode</code>的子类，这里调用<code>addPassRequest()</code>方法，最终都会进入<code>StatisticNode</code>中。</p>
+<p>随便跟入一个：</p>
+<p><img src="/../../images/image-20210925180810181.png" alt="image-20210925180810181"></p>
+<p>这里有秒、分两种纬度的统计，对应两个计数器。找到对应的成员变量，可以看到：</p>
+<p><img src="/../../images/image-20210925180954856.png" alt="image-20210925180954856"></p>
+<p>两个计数器都是ArrayMetric类型，并且传入了两个参数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// intervalInMs：是滑动窗口的时间间隔，默认为 1 秒</span></span><br><span class="line"><span class="comment">// sampleCount: 时间窗口的分隔数量，默认为 2，就是把 1秒分为 2个小时间窗</span></span><br><span class="line"><span class="keyword">public</span> <span class="title function_">ArrayMetric</span><span class="params">(<span class="type">int</span> sampleCount, <span class="type">int</span> intervalInMs)</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.data = <span class="keyword">new</span> <span class="title class_">OccupiableBucketLeapArray</span>(sampleCount, intervalInMs);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如图：</p>
+<p><img src="/../../images/image-20210925181359203.png" alt="image-20210925181359203"></p>
+<p>接下来，我们进入<code>ArrayMetric</code>类的<code>addPass</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addPass</span><span class="params">(<span class="type">int</span> count)</span> &#123;</span><br><span class="line">    <span class="comment">// 获取当前时间所在的时间窗</span></span><br><span class="line">    WindowWrap&lt;MetricBucket&gt; wrap = data.currentWindow();</span><br><span class="line">    <span class="comment">// 计数器 +1</span></span><br><span class="line">    wrap.value().addPass(count);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>那么，计数器如何知道当前所在的窗口是哪个呢？</p>
+<p>这里的data是一个LeapArray：</p>
+<p><img src="/../../images/image-20210925181714605.png" alt="image-20210925181714605"></p>
+<p>LeapArray的四个属性：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">abstract</span> <span class="keyword">class</span> <span class="title class_">LeapArray</span>&lt;T&gt; &#123;</span><br><span class="line">    <span class="comment">// 小窗口的时间长度，默认是500ms ，值 = intervalInMs / sampleCount</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="type">int</span> windowLengthInMs;</span><br><span class="line">    <span class="comment">// 滑动窗口内的 小窗口 数量，默认为 2</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="type">int</span> sampleCount;</span><br><span class="line">    <span class="comment">// 滑动窗口的时间间隔，默认为 1000ms</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="type">int</span> intervalInMs;</span><br><span class="line">    <span class="comment">// 滑动窗口的时间间隔，单位为秒，默认为 1</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">double</span> intervalInSecond;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>LeapArray是一个环形数组，因为时间是无限的，数组长度不可能无限，因此数组中每一个格子放入一个时间窗（window），当数组放满后，角标归0，覆盖最初的window。</p>
+<p><img src="/../../images/image-20210925182127206.png" alt="image-20210925182127206"></p>
+<p>因为滑动窗口最多分成sampleCount数量的小窗口，因此数组长度只要大于sampleCount，那么最近的一个滑动窗口内的2个小窗口就永远不会被覆盖，就不用担心旧数据被覆盖的问题了。</p>
+<p>我们跟入<code> data.currentWindow();</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> WindowWrap&lt;T&gt; <span class="title function_">currentWindow</span><span class="params">(<span class="type">long</span> timeMillis)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (timeMillis &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 计算当前时间对应的数组角标</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">idx</span> <span class="operator">=</span> calculateTimeIdx(timeMillis);</span><br><span class="line">    <span class="comment">// 计算当前时间所在窗口的开始时间.</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">windowStart</span> <span class="operator">=</span> calculateWindowStart(timeMillis);</span><br><span class="line"></span><br><span class="line">    <span class="comment">/*</span></span><br><span class="line"><span class="comment">         * 先根据角标获取数组中保存的 oldWindow 对象，可能是旧数据，需要判断.</span></span><br><span class="line"><span class="comment">         *</span></span><br><span class="line"><span class="comment">         * (1) oldWindow 不存在, 说明是第一次，创建新 window并存入，然后返回即可</span></span><br><span class="line"><span class="comment">         * (2) oldWindow的 starTime = 本次请求的 windowStar, 说明正是要找的窗口，直接返回.</span></span><br><span class="line"><span class="comment">         * (3) oldWindow的 starTime &lt; 本次请求的 windowStar, 说明是旧数据，需要被覆盖，创建 </span></span><br><span class="line"><span class="comment">         *     新窗口，覆盖旧窗口</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        WindowWrap&lt;T&gt; old = array.get(idx);</span><br><span class="line">        <span class="keyword">if</span> (old == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 创建新 window</span></span><br><span class="line">            WindowWrap&lt;T&gt; window = <span class="keyword">new</span> <span class="title class_">WindowWrap</span>&lt;T&gt;(windowLengthInMs, windowStart, newEmptyBucket(timeMillis));</span><br><span class="line">            <span class="comment">// 基于CAS写入数组，避免线程安全问题</span></span><br><span class="line">            <span class="keyword">if</span> (array.compareAndSet(idx, <span class="literal">null</span>, window)) &#123;</span><br><span class="line">                <span class="comment">// 写入成功，返回新的 window</span></span><br><span class="line">                <span class="keyword">return</span> window;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// 写入失败，说明有并发更新，等待其它人更新完成即可</span></span><br><span class="line">                Thread.yield();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (windowStart == old.windowStart()) &#123;</span><br><span class="line">            <span class="keyword">return</span> old;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (windowStart &gt; old.windowStart()) &#123;</span><br><span class="line">            <span class="keyword">if</span> (updateLock.tryLock()) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="comment">// 获取并发锁，覆盖旧窗口并返回</span></span><br><span class="line">                    <span class="keyword">return</span> resetWindowTo(old, windowStart);</span><br><span class="line">                &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                    updateLock.unlock();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="comment">// 获取锁失败，等待其它线程处理就可以了</span></span><br><span class="line">                Thread.yield();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (windowStart &lt; old.windowStart()) &#123;</span><br><span class="line">            <span class="comment">// 这种情况不应该存在，写这里只是以防万一。</span></span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">WindowWrap</span>&lt;T&gt;(windowLengthInMs, windowStart, newEmptyBucket(timeMillis));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>找到当前时间所在窗口（WindowWrap）后，只要调用WindowWrap对象中的add方法，计数器+1即可。</p>
+<p>这里只负责统计每个窗口的请求量，不负责拦截。限流拦截要看FlowSlot中的逻辑。</p>
+<h4 id="2-9-2-2-滑动窗口QPS计算"><a href="#2-9-2-2-滑动窗口QPS计算" class="headerlink" title="2.9.2.2.滑动窗口QPS计算"></a>2.9.2.2.滑动窗口QPS计算</h4><p>在2.9.1小节我们讲过，FlowSlot的限流判断最终都由<code>TrafficShapingController</code>接口中的<code>canPass</code>方法来实现。该接口有三个实现类：</p>
+<ul>
+<li>DefaultController：快速失败，默认的方式，基于滑动时间窗口算法</li>
+<li>WarmUpController：预热模式，基于滑动时间窗口算法，只不过阈值是动态的</li>
+<li>RateLimiterController：排队等待模式，基于漏桶算法</li>
+</ul>
+<p>因此，我们跟入默认的DefaultController中的canPass方法来分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">canPass</span><span class="params">(Node node, <span class="type">int</span> acquireCount, <span class="type">boolean</span> prioritized)</span> &#123;</span><br><span class="line">    <span class="comment">// 计算目前为止滑动窗口内已经存在的请求量</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">curCount</span> <span class="operator">=</span> avgUsedTokens(node);</span><br><span class="line">    <span class="comment">// 判断：已使用请求量 + 需要的请求量（1） 是否大于 窗口的请求阈值</span></span><br><span class="line">    <span class="keyword">if</span> (curCount + acquireCount &gt; count) &#123;</span><br><span class="line">        <span class="comment">// 大于，说明超出阈值，返回false</span></span><br><span class="line">        <span class="keyword">if</span> (prioritized &amp;&amp; grade == RuleConstant.FLOW_GRADE_QPS) &#123;</span><br><span class="line">            <span class="type">long</span> currentTime;</span><br><span class="line">            <span class="type">long</span> waitInMs;</span><br><span class="line">            currentTime = TimeUtil.currentTimeMillis();</span><br><span class="line">            waitInMs = node.tryOccupyNext(currentTime, acquireCount, count);</span><br><span class="line">            <span class="keyword">if</span> (waitInMs &lt; OccupyTimeoutProperty.getOccupyTimeout()) &#123;</span><br><span class="line">                node.addWaitingRequest(currentTime + waitInMs, acquireCount);</span><br><span class="line">                node.addOccupiedPass(acquireCount);</span><br><span class="line">                sleep(waitInMs);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// PriorityWaitException indicates that the request will pass after waiting for &#123;@link @waitInMs&#125;.</span></span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">PriorityWaitException</span>(waitInMs);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 小于等于，说明在阈值范围内，返回true</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>因此，判断的关键就是<code>int curCount = avgUsedTokens(node);</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="type">int</span> <span class="title function_">avgUsedTokens</span><span class="params">(Node node)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (node == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> DEFAULT_AVG_USED_TOKENS;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">return</span> <span class="variable">grade</span> <span class="operator">=</span>= RuleConstant.FLOW_GRADE_THREAD ? node.curThreadNum() : (<span class="type">int</span>)(node.passQps());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为我们采用的是限流，走<code>node.passQps()</code>逻辑：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 这里又进入了 StatisticNode类</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">double</span> <span class="title function_">passQps</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 请求量 ÷ 滑动窗口时间间隔 ，得到的就是QPS</span></span><br><span class="line">    <span class="keyword">return</span> rollingCounterInSecond.pass() / rollingCounterInSecond.getWindowIntervalInSec();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么<code>rollingCounterInSecond.pass()</code>是如何得到请求量的呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// rollingCounterInSecond 本质是ArrayMetric，之前说过</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">long</span> <span class="title function_">pass</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 获取当前窗口</span></span><br><span class="line">    data.currentWindow();</span><br><span class="line">    <span class="type">long</span> <span class="variable">pass</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 获取 当前时间的 滑动窗口范围内 的所有小窗口</span></span><br><span class="line">    List&lt;MetricBucket&gt; list = data.values();</span><br><span class="line">	<span class="comment">// 遍历</span></span><br><span class="line">    <span class="keyword">for</span> (MetricBucket window : list) &#123;</span><br><span class="line">        <span class="comment">// 累加求和</span></span><br><span class="line">        pass += window.pass();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 返回</span></span><br><span class="line">    <span class="keyword">return</span> pass;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>来看看<code>data.values()</code>如何获取 滑动窗口范围内 的所有小窗口：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 此处进入LeapArray类中：</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> List&lt;T&gt; <span class="title function_">values</span><span class="params">(<span class="type">long</span> timeMillis)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (timeMillis &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;T&gt;();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 创建空集合，大小等于 LeapArray长度</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">size</span> <span class="operator">=</span> array.length();</span><br><span class="line">    List&lt;T&gt; result = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;T&gt;(size);</span><br><span class="line">	<span class="comment">// 遍历 LeapArray</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; size; i++) &#123;</span><br><span class="line">        <span class="comment">// 获取每一个小窗口</span></span><br><span class="line">        WindowWrap&lt;T&gt; windowWrap = array.get(i);</span><br><span class="line">        <span class="comment">// 判断这个小窗口是否在 滑动窗口时间范围内（1秒内）</span></span><br><span class="line">        <span class="keyword">if</span> (windowWrap == <span class="literal">null</span> || isWindowDeprecated(timeMillis, windowWrap)) &#123;</span><br><span class="line">            <span class="comment">// 不在范围内，则跳过</span></span><br><span class="line">            <span class="keyword">continue</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 在范围内，则添加到集合中</span></span><br><span class="line">        result.add(windowWrap.value());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 返回集合</span></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>那么，<code>isWindowDeprecated(timeMillis, windowWrap)</code>又是如何判断窗口是否符合要求呢？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isWindowDeprecated</span><span class="params">(<span class="type">long</span> time, WindowWrap&lt;T&gt; windowWrap)</span> &#123;</span><br><span class="line">    <span class="comment">// 当前时间 - 窗口开始时间  是否大于 滑动窗口的最大间隔（1秒）</span></span><br><span class="line">    <span class="comment">// 也就是说，我们要统计的时 距离当前时间1秒内的 小窗口的 count之和</span></span><br><span class="line">    <span class="keyword">return</span> time - windowWrap.windowStart() &gt; intervalInMs;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h3 id="2-9-3-漏桶"><a href="#2-9-3-漏桶" class="headerlink" title="2.9.3.漏桶"></a>2.9.3.漏桶</h3><p>上一节我们讲过，FlowSlot的限流判断最终都由<code>TrafficShapingController</code>接口中的<code>canPass</code>方法来实现。该接口有三个实现类：</p>
+<ul>
+<li>DefaultController：快速失败，默认的方式，基于滑动时间窗口算法</li>
+<li>WarmUpController：预热模式，基于滑动时间窗口算法，只不过阈值是动态的</li>
+<li>RateLimiterController：排队等待模式，基于漏桶算法</li>
+</ul>
+<p>因此，我们跟入默认的RateLimiterController中的canPass方法来分析：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">canPass</span><span class="params">(Node node, <span class="type">int</span> acquireCount, <span class="type">boolean</span> prioritized)</span> &#123;</span><br><span class="line">    <span class="comment">// Pass when acquire count is less or equal than 0.</span></span><br><span class="line">    <span class="keyword">if</span> (acquireCount &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 阈值小于等于 0 ，阻止请求</span></span><br><span class="line">    <span class="keyword">if</span> (count &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 获取当前时间</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">currentTime</span> <span class="operator">=</span> TimeUtil.currentTimeMillis();</span><br><span class="line">    <span class="comment">// 计算两次请求之间允许的最小时间间隔</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">costTime</span> <span class="operator">=</span> Math.round(<span class="number">1.0</span> * (acquireCount) / count * <span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 计算本次请求 允许执行的时间点 = 最近一次请求的可执行时间 + 两次请求的最小间隔</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">expectedTime</span> <span class="operator">=</span> costTime + latestPassedTime.get();</span><br><span class="line">	<span class="comment">// 如果允许执行的时间点小于当前时间，说明可以立即执行</span></span><br><span class="line">    <span class="keyword">if</span> (expectedTime &lt;= currentTime) &#123;</span><br><span class="line">        <span class="comment">// 更新上一次的请求的执行时间</span></span><br><span class="line">        latestPassedTime.set(currentTime);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 不能立即执行，需要计算 预期等待时长</span></span><br><span class="line">        <span class="comment">// 预期等待时长 = 两次请求的最小间隔 +最近一次请求的可执行时间 - 当前时间</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">waitTime</span> <span class="operator">=</span> costTime + latestPassedTime.get() - TimeUtil.currentTimeMillis();</span><br><span class="line">        <span class="comment">// 如果预期等待时间超出阈值，则拒绝请求</span></span><br><span class="line">        <span class="keyword">if</span> (waitTime &gt; maxQueueingTimeMs) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 预期等待时间小于阈值，更新最近一次请求的可执行时间，加上costTime</span></span><br><span class="line">            <span class="type">long</span> <span class="variable">oldTime</span> <span class="operator">=</span> latestPassedTime.addAndGet(costTime);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 保险起见，再判断一次预期等待时间，是否超过阈值</span></span><br><span class="line">                waitTime = oldTime - TimeUtil.currentTimeMillis();</span><br><span class="line">                <span class="keyword">if</span> (waitTime &gt; maxQueueingTimeMs) &#123;</span><br><span class="line">                    <span class="comment">// 如果超过，则把刚才 加 的时间再 减回来</span></span><br><span class="line">                    latestPassedTime.addAndGet(-costTime);</span><br><span class="line">                    <span class="comment">// 拒绝</span></span><br><span class="line">                    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="comment">// in race condition waitTime may &lt;= 0</span></span><br><span class="line">                <span class="keyword">if</span> (waitTime &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    <span class="comment">// 预期等待时间在阈值范围内，休眠要等待的时间，醒来后继续执行</span></span><br><span class="line">                    Thread.sleep(waitTime);</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>与我们之前分析的漏桶算法基本一致：</p>
+<p><img src="/../../images/image-20210925210716675.png" alt="image-20210925210716675"></p>
+<h2 id="2-10-DegradeSlot"><a href="#2-10-DegradeSlot" class="headerlink" title="2.10.DegradeSlot"></a>2.10.DegradeSlot</h2><p>最后一关，就是降级规则判断了。</p>
+<p>Sentinel的降级是基于状态机来实现的：</p>
+<p><img src="/../../images/image-20210925211020881.png" alt="image-20210925211020881"></p>
+<p>对应的实现在DegradeSlot类中，核心API：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">entry</span><span class="params">(Context context, ResourceWrapper resourceWrapper, DefaultNode node, </span></span><br><span class="line"><span class="params">                  <span class="type">int</span> count, <span class="type">boolean</span> prioritized, Object... args)</span> <span class="keyword">throws</span> Throwable &#123;</span><br><span class="line">    <span class="comment">// 熔断降级规则判断</span></span><br><span class="line">    performChecking(context, resourceWrapper);</span><br><span class="line">	<span class="comment">// 继续下一个slot</span></span><br><span class="line">    fireEntry(context, resourceWrapper, node, count, prioritized, args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>继续进入<code>performChecking</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">void</span> <span class="title function_">performChecking</span><span class="params">(Context context, ResourceWrapper r)</span> <span class="keyword">throws</span> BlockException &#123;</span><br><span class="line">    <span class="comment">// 获取当前资源上的所有的断路器 CircuitBreaker</span></span><br><span class="line">    List&lt;CircuitBreaker&gt; circuitBreakers = DegradeRuleManager.getCircuitBreakers(r.getName());</span><br><span class="line">    <span class="keyword">if</span> (circuitBreakers == <span class="literal">null</span> || circuitBreakers.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (CircuitBreaker cb : circuitBreakers) &#123;</span><br><span class="line">        <span class="comment">// 遍历断路器，逐个判断</span></span><br><span class="line">        <span class="keyword">if</span> (!cb.tryPass(context)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">DegradeException</span>(cb.getRule().getLimitApp(), cb.getRule());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="2-10-1-CircuitBreaker"><a href="#2-10-1-CircuitBreaker" class="headerlink" title="2.10.1.CircuitBreaker"></a>2.10.1.CircuitBreaker</h3><p>我们进入CircuitBreaker的tryPass方法中：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">tryPass</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">    <span class="comment">// 判断状态机状态</span></span><br><span class="line">    <span class="keyword">if</span> (currentState.get() == State.CLOSED) &#123;</span><br><span class="line">        <span class="comment">// 如果是closed状态，直接放行</span></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (currentState.get() == State.OPEN) &#123;</span><br><span class="line">        <span class="comment">// 如果是OPEN状态，断路器打开</span></span><br><span class="line">        <span class="comment">// 继续判断OPEN时间窗是否结束，如果是则把状态从OPEN切换到 HALF_OPEN，返回true</span></span><br><span class="line">        <span class="keyword">return</span> retryTimeoutArrived() &amp;&amp; fromOpenToHalfOpen(context);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// OPEN状态，并且时间窗未到，返回false</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>有关时间窗的判断在<code>retryTimeoutArrived()</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">retryTimeoutArrived</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 当前时间 大于 下一次 HalfOpen的重试时间</span></span><br><span class="line">    <span class="keyword">return</span> TimeUtil.currentTimeMillis() &gt;= nextRetryTimestamp;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>OPEN到HALF_OPEN切换在<code>fromOpenToHalfOpen(context)</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="type">boolean</span> <span class="title function_">fromOpenToHalfOpen</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">    <span class="comment">// 基于CAS修改状态，从 OPEN到 HALF_OPEN</span></span><br><span class="line">    <span class="keyword">if</span> (currentState.compareAndSet(State.OPEN, State.HALF_OPEN)) &#123;</span><br><span class="line">        <span class="comment">// 状态变更的事件通知</span></span><br><span class="line">        notifyObservers(State.OPEN, State.HALF_OPEN, <span class="literal">null</span>);</span><br><span class="line">        <span class="comment">// 得到当前资源</span></span><br><span class="line">        <span class="type">Entry</span> <span class="variable">entry</span> <span class="operator">=</span> context.getCurEntry();</span><br><span class="line">        <span class="comment">// 给资源设置监听器，在资源Entry销毁时（资源业务执行完毕时）触发</span></span><br><span class="line">        entry.whenTerminate(<span class="keyword">new</span> <span class="title class_">BiConsumer</span>&lt;Context, Entry&gt;() &#123;</span><br><span class="line">            <span class="meta">@Override</span></span><br><span class="line">            <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">accept</span><span class="params">(Context context, Entry entry)</span> &#123;</span><br><span class="line">                <span class="comment">// 判断 资源业务是否异常</span></span><br><span class="line">                <span class="keyword">if</span> (entry.getBlockError() != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="comment">// 如果异常，则再次进入OPEN状态</span></span><br><span class="line">                    currentState.compareAndSet(State.HALF_OPEN, State.OPEN);</span><br><span class="line">                    notifyObservers(State.HALF_OPEN, State.OPEN, <span class="number">1.0d</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这里出现了从OPEN到HALF_OPEN、从HALF_OPEN到OPEN的变化，但是还有几个没有：</p>
+<ul>
+<li>从CLOSED到OPEN</li>
+<li>从HALF_OPEN到CLOSED</li>
+</ul>
+<h3 id="2-10-2-触发断路器"><a href="#2-10-2-触发断路器" class="headerlink" title="2.10.2.触发断路器"></a>2.10.2.触发断路器</h3><p>请求经过所有插槽 后，一定会执行exit方法，而在DegradeSlot的exit方法中：</p>
+<p><img src="/../../images/image-20210925213440686.png" alt="image-20210925213440686"></p>
+<p>会调用CircuitBreaker的onRequestComplete方法。而CircuitBreaker有两个实现：</p>
+<p><img src="/../../images/image-20210925213939035.png" alt="image-20210925213939035"></p>
+<p>我们这里以异常比例熔断为例来看，进入<code>ExceptionCircuitBreaker</code>的<code>onRequestComplete</code>方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">onRequestComplete</span><span class="params">(Context context)</span> &#123;</span><br><span class="line">    <span class="comment">// 获取资源 Entry</span></span><br><span class="line">    <span class="type">Entry</span> <span class="variable">entry</span> <span class="operator">=</span> context.getCurEntry();</span><br><span class="line">    <span class="keyword">if</span> (entry == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 尝试获取 资源中的 异常</span></span><br><span class="line">    <span class="type">Throwable</span> <span class="variable">error</span> <span class="operator">=</span> entry.getError();</span><br><span class="line">    <span class="comment">// 获取计数器，同样采用了滑动窗口来计数</span></span><br><span class="line">    <span class="type">SimpleErrorCounter</span> <span class="variable">counter</span> <span class="operator">=</span> stat.currentWindow().value();</span><br><span class="line">    <span class="keyword">if</span> (error != <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 如果出现异常，则 error计数器 +1</span></span><br><span class="line">        counter.getErrorCount().add(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 不管是否出现异常，total计数器 +1</span></span><br><span class="line">    counter.getTotalCount().add(<span class="number">1</span>);</span><br><span class="line">	<span class="comment">// 判断异常比例是否超出阈值</span></span><br><span class="line">    handleStateChangeWhenThresholdExceeded(error);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>来看阈值判断的方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleStateChangeWhenThresholdExceeded</span><span class="params">(Throwable error)</span> &#123;</span><br><span class="line">    <span class="comment">// 如果当前已经是OPEN状态，不做处理</span></span><br><span class="line">    <span class="keyword">if</span> (currentState.get() == State.OPEN) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 如果已经是 HALF_OPEN 状态，判断是否需求切换状态</span></span><br><span class="line">    <span class="keyword">if</span> (currentState.get() == State.HALF_OPEN) &#123;</span><br><span class="line">        <span class="keyword">if</span> (error == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="comment">// 没有异常，则从 HALF_OPEN 到 CLOSED</span></span><br><span class="line">            fromHalfOpenToClose();</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="comment">// 有一次，再次进入OPEN</span></span><br><span class="line">            fromHalfOpenToOpen(<span class="number">1.0d</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="comment">// 说明当前是CLOSE状态，需要判断是否触发阈值</span></span><br><span class="line">    List&lt;SimpleErrorCounter&gt; counters = stat.values();</span><br><span class="line">    <span class="type">long</span> <span class="variable">errCount</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="type">long</span> <span class="variable">totalCount</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">    <span class="comment">// 累加计算 异常请求数量、总请求数量</span></span><br><span class="line">    <span class="keyword">for</span> (SimpleErrorCounter counter : counters) &#123;</span><br><span class="line">        errCount += counter.errorCount.sum();</span><br><span class="line">        totalCount += counter.totalCount.sum();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果总请求数量未达到阈值，什么都不做</span></span><br><span class="line">    <span class="keyword">if</span> (totalCount &lt; minRequestAmount) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">double</span> <span class="variable">curCount</span> <span class="operator">=</span> errCount;</span><br><span class="line">    <span class="keyword">if</span> (strategy == DEGRADE_GRADE_EXCEPTION_RATIO) &#123;</span><br><span class="line">        <span class="comment">// 计算请求的异常比例</span></span><br><span class="line">        curCount = errCount * <span class="number">1.0d</span> / totalCount;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 如果比例超过阈值，切换到 OPEN</span></span><br><span class="line">    <span class="keyword">if</span> (curCount &gt; threshold) &#123;</span><br><span class="line">        transformToOpen(curCount);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>  
+	</div>
+		<footer class="article-footer clearfix">
+<div class="article-catetags">
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/spring/">spring</a>
+</div>
+
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/springcloud/">springcloud</a>
+  </div>
+
+</div>
+
+
+
+	<div class="article-share" id="share">
+	
+	  <div data-url="http://blog.b6123.top/2022/03/22/sentinel/" data-title="Sentinel源码分析 | JsonLu的个人博客网站" data-tsina="" class="share clearfix">
+	  </div>
+	
+	</div>
+
+
+</footer>
+
+   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2022/03/22/nacosym/" title="Nacos源码分析">
+  <strong>上一篇：</strong><br/>
+  <span>
+  Nacos源码分析</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2022/03/22/newpapername/"  title="学习 Vue，从入门到放弃">
+ <strong>下一篇：</strong><br/> 
+ <span>学习 Vue，从入门到放弃
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+
+
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+ 
+ <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-Sentinel%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="toc-number">1.</span> <span class="toc-text">1.Sentinel的基本概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-ProcessorSlotChain"><span class="toc-number">1.1.</span> <span class="toc-text">1.1.ProcessorSlotChain</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Node"><span class="toc-number">1.2.</span> <span class="toc-text">1.2.Node</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-Entry"><span class="toc-number">1.3.</span> <span class="toc-text">1.3.Entry</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-1-%E8%87%AA%E5%AE%9A%E4%B9%89%E8%B5%84%E6%BA%90"><span class="toc-number">1.3.1.</span> <span class="toc-text">1.3.1.自定义资源</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-2-%E5%9F%BA%E4%BA%8E%E6%B3%A8%E8%A7%A3%E6%A0%87%E8%AE%B0%E8%B5%84%E6%BA%90"><span class="toc-number">1.3.2.</span> <span class="toc-text">1.3.2.基于注解标记资源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-Context"><span class="toc-number">1.4.</span> <span class="toc-text">1.4.Context</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-1-%E4%BB%80%E4%B9%88%E6%98%AFContext"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.4.1.什么是Context</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-2-Context%E7%9A%84%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">1.4.2.</span> <span class="toc-text">1.4.2.Context的初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-4-2-1-%E8%87%AA%E5%8A%A8%E8%A3%85%E9%85%8D"><span class="toc-number">1.4.2.1.</span> <span class="toc-text">1.4.2.1.自动装配</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-4-2-2-AbstractSentinelInterceptor"><span class="toc-number">1.4.2.2.</span> <span class="toc-text">1.4.2.2.AbstractSentinelInterceptor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-4-2-3-ContextUtil"><span class="toc-number">1.4.2.3.</span> <span class="toc-text">1.4.2.3.ContextUtil</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-ProcessorSlotChain%E6%89%A7%E8%A1%8C%E6%B5%81%E7%A8%8B"><span class="toc-number">2.</span> <span class="toc-text">2.ProcessorSlotChain执行流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%85%A5%E5%8F%A3"><span class="toc-number">2.1.</span> <span class="toc-text">2.1.入口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-DefaultProcessorSlotChain"><span class="toc-number">2.2.</span> <span class="toc-text">2.2.DefaultProcessorSlotChain</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-NodeSelectorSlot"><span class="toc-number">2.3.</span> <span class="toc-text">2.3.NodeSelectorSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-ClusterBuilderSlot"><span class="toc-number">2.4.</span> <span class="toc-text">2.4.ClusterBuilderSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-5-StatisticSlot"><span class="toc-number">2.5.</span> <span class="toc-text">2.5.StatisticSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-6-AuthoritySlot"><span class="toc-number">2.6.</span> <span class="toc-text">2.6.AuthoritySlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-7-SystemSlot"><span class="toc-number">2.7.</span> <span class="toc-text">2.7.SystemSlot</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-8-ParamFlowSlot"><span class="toc-number">2.8.</span> <span class="toc-text">2.8.ParamFlowSlot</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-8-1-%E4%BB%A4%E7%89%8C%E6%A1%B6"><span class="toc-number">2.8.1.</span> <span class="toc-text">2.8.1.令牌桶</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-9-FlowSlot"><span class="toc-number">2.9.</span> <span class="toc-text">2.9.FlowSlot</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-1-%E6%A0%B8%E5%BF%83%E6%B5%81%E7%A8%8B"><span class="toc-number">2.9.1.</span> <span class="toc-text">2.9.1.核心流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-2-%E6%BB%91%E5%8A%A8%E6%97%B6%E9%97%B4%E7%AA%97%E5%8F%A3"><span class="toc-number">2.9.2.</span> <span class="toc-text">2.9.2.滑动时间窗口</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-9-2-1-%E6%97%B6%E9%97%B4%E7%AA%97%E5%8F%A3%E8%AF%B7%E6%B1%82%E9%87%8F%E7%BB%9F%E8%AE%A1"><span class="toc-number">2.9.2.1.</span> <span class="toc-text">2.9.2.1.时间窗口请求量统计</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-9-2-2-%E6%BB%91%E5%8A%A8%E7%AA%97%E5%8F%A3QPS%E8%AE%A1%E7%AE%97"><span class="toc-number">2.9.2.2.</span> <span class="toc-text">2.9.2.2.滑动窗口QPS计算</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-9-3-%E6%BC%8F%E6%A1%B6"><span class="toc-number">2.9.3.</span> <span class="toc-text">2.9.3.漏桶</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-10-DegradeSlot"><span class="toc-number">2.10.</span> <span class="toc-text">2.10.DegradeSlot</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-10-1-CircuitBreaker"><span class="toc-number">2.10.1.</span> <span class="toc-text">2.10.1.CircuitBreaker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-10-2-%E8%A7%A6%E5%8F%91%E6%96%AD%E8%B7%AF%E5%99%A8"><span class="toc-number">2.10.2.</span> <span class="toc-text">2.10.2.触发断路器</span></a></li></ol></li></ol></li></ol>
+ 
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+
+  
+<div class="github-card">
+<p class="asidetitle">Github 名片</p>
+<div class="github-card" data-github="JsonandSesson" data-theme="medium"></div>
+<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
+</div>
+
+
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+		  
+			<li><a href="/categories/spring/" title="spring">spring<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/springcloud/" title="springcloud">springcloud<sup>1</sup></a></li>
+		  
+		
+		  
+			<li><a href="/categories/vue/" title="vue">vue<sup>1</sup></a></li>
+		  
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			
+				<li><a href="/tags/vue/" title="vue">vue<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/springcloud/" title="springcloud">springcloud<sup>1</sup></a></li>
+			
+		
+			
+				<li><a href="/tags/nacos/" title="nacos">nacos<sup>1</sup></a></li>
+			
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+        
+          <li>
+            
+            	<a href="https://coderq.com" target="_blank" title="一个面向程序员交流分享的新一代社区">码农圈</a>
+            
+          </li>
+        
+          <li>
+            
+            	<a href="http://wuchong.me" target="_blank" title="Jark&#39;s Blog">Jark&#39;s Blog</a>
+            
+          </li>
+        
+    </ul>
+</div>
+
+  
+
+
+  <div class="rsspart">
+	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  <div class="weiboshow">
+  <p class="asidetitle">新浪微博</p>
+    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=&verifier=&dpc=1"></iframe>
+</div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+	
+	<div class="line">
+		<span></span>
+		<div class="author"></div>
+	</div>
+	
+	
+	<section class="info">
+		<p> Hello ,I&#39;m JsonandSesson in github. <br/>
+			This is my blog,believe it or not.</p>
+	</section>
+	 
+	<div class="social-font" class="clearfix">
+		
+		
+		<a href="https://github.com/JsonandSesson" target="_blank" class="icon-github" title="github"></a>
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		<a href="mailto:15155519063@163.com" target="_blank" class="icon-email" title="Email Me"></a>
+		
+	</div>
+			
+		
+
+		<p class="copyright">
+		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022 
+		
+		<a href="/about" target="_blank" title="JL">JL</a>
+		
+		
+		</p>
+</div>
+</footer>
+    <script src="/js/jquery-2.0.3.min.js"></script>
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+  
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else{
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  c.click(function(){
+    ta.css('display', 'block').addClass('fadeIn');
+  });
+  o.click(function(){
+    ta.css('display', 'none');
+  });
+  $(window).scroll(function(){
+    ta.css("top",Math.max(140,320-$(this).scrollTop()));
+  });
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina'),
+      description = $this.attr('description');
+  var html = [
+  '<div class="hoverqrcode clearfix"></div>',
+  '<a class="overlay" id="qrcode"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
+  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+
+  $('.hoverqrcode').hide();
+
+  var myWidth = 0;
+  function updatehoverqrcode(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+    var qrsize = myWidth > 1024 ? 200:100;
+    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
+    var p = $('.article-share-qrcode').position();
+    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
+                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
+                          .qrcode(options);
+  };
+  $(window).resize(function(){
+    $('.hoverqrcode').hide();
+  });
+  $('.article-share-qrcode').click(function(){
+    updatehoverqrcode();
+    $('.hoverqrcode').toggle();
+  });
+  $('.article-share-qrcode').hover(function(){}, function(){
+      $('.hoverqrcode').hide();
+  });
+});   
+</script>
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.article-content').each(function(i){
+    $(this).find('img').each(function(){
+      if ($(this).parent().hasClass('fancybox')) return;
+      var alt = this.alt;
+      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
+      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
+    });
+    $(this).find('.fancybox').each(function(){
+      $(this).attr('rel', 'article' + i);
+    });
+  });
+  if($.fancybox){
+    $('.fancybox').fancybox();
+  }
+}); 
+</script>
+
+
+
+<!-- Analytics Begin -->
+
+
+
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
+  var s = document.getElementsByTagName("script")[0]; 
+  s.parentNode.insertBefore(hm, s);
+})();
+</script>
+
+
+
+<!-- Analytics End -->
+
+<!-- Totop Begin -->
+
+	<div id="totop">
+	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
+	</div>
+	<script src="/js/totop.js"></script>
+
+<!-- Totop End -->
+
+<!-- MathJax Begin -->
+<!-- mathjax config similar to math.stackexchange -->
+
+
+<!-- MathJax End -->
+
+<!-- Tiny_search Begin -->
+
+<!-- Tiny_search End -->
+
+  </body>
+</html>
