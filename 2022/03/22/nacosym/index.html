@@ -1,180 +1,489 @@
-
- <!DOCTYPE HTML>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
+<!DOCTYPE html>
+<html>
+  <!-- meta/link... -->
   
-    <title>Nacos源码分析 | JsonLu的个人博客网站</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
-    
-    <meta name="author" content="JL">
-    
 
-    
-    <meta name="description" content="1.下载Nacos源码并运行要研究Nacos源码自然不能用打包好的Nacos服务端jar包来运行，需要下载源码自己编译来运行。 1.1.下载Nacos源码Nacos的GitHub地址：https:&#x2F;&#x2F;github.com&#x2F;alibaba&#x2F;nacos 课前资料中已经提供了下载好的1.4.2版本的Nacos源码：   如果需要研究其他版本的同学，也可以自行下载： 大家找到其release页面：http">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Nacos源码分析">
-<meta property="og:url" content="http://blog.b6123.top/2022/03/22/nacosym/index.html">
-<meta property="og:site_name" content="JsonLu的个人博客网站">
-<meta property="og:description" content="1.下载Nacos源码并运行要研究Nacos源码自然不能用打包好的Nacos服务端jar包来运行，需要下载源码自己编译来运行。 1.1.下载Nacos源码Nacos的GitHub地址：https:&#x2F;&#x2F;github.com&#x2F;alibaba&#x2F;nacos 课前资料中已经提供了下载好的1.4.2版本的Nacos源码：   如果需要研究其他版本的同学，也可以自行下载： 大家找到其release页面：http">
-<meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906105652113.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906105157409.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906105102668.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906105858000.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906110014198.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111053263.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111152447.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111259352.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111422406.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111519198.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111543747.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111632336.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906111941399.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906112814549.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906112920575.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906113011871.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906113552081.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906113655302.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906113829647.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906113923430.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906114035628.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906114143669.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906114220412.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906114519073.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906114705910.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210906151358154.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922111651314.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210907201333049.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210907201612322.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210907213647145.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210907214111801.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210907214411267.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210907215903335.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210908141019175.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923185331470.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922112801808.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922112954630.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922113158618.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922141703128.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922161705573.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922180246555.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922195603450.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923214042926.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922213313677.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922213455549.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922213829632.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922221022107.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210922221344417.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923100740065.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923102824451.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923153419392.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923161528710.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923161630575.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923161752521.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923164145915.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923182429636.png">
-<meta property="og:image" content="http://blog.b6123.top/images/image-20210923183017424.png">
-<meta property="article:published_time" content="2022-03-22T06:37:36.000Z">
-<meta property="article:modified_time" content="2022-03-22T06:37:36.671Z">
-<meta property="article:author" content="JL">
-<meta property="article:tag" content="nacos">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://blog.b6123.top/images/image-20210906105652113.png">
 
+
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+  <title>Nacos源码分析 | JsonLu的个人博客网站</title>
+
+  <link rel="icon" type="image/x-icon, image/vnd.microsoft.icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://at.alicdn.com/t/font_1911880_c1nvbyezg17.css">
+  <link href="https://cdn.jsdelivr.net/gh/inkss/fontawesome@5.15.3/css/all.min.css" rel="stylesheet">
+  <link href="/js/swiper/swiper@5.4.1.min.css" rel="stylesheet">
+  
+  
+    <script>
+        var themeModelId = '';
+        if (themeModelId) {
+            localStorage.setItem('modelId', themeModelId);
+        }
+    </script>
     
-    <link rel="alternative" href="/atom.xml" title="JsonLu的个人博客网站" type="application/atom+xml">
-    
-    
-    <link rel="icon" href="/img/favicon.ico">
-    
-    
-    <link rel="apple-touch-icon" href="/img/jacman.jpg">
-    <link rel="apple-touch-icon-precomposed" href="/img/jacman.jpg">
-    
-    
+    <script src="https://cdn.jsdelivr.net/gh/yuang01/live2d-widget@latest/autoload.js"></script>
+    <script>
+        var live2dOpen = eval('true') || false;
+        if (!live2dOpen) {
+            localStorage.setItem('waifu-display', 1609323474481);
+        }
+    </script>
+  
+  
+  
+<link rel="stylesheet" href="/css/animate.min.css">
+
+  
 <link rel="stylesheet" href="/css/style.css">
+
+  
+  
+    
+<link rel="stylesheet" href="/js/fancybox/jquery.fancybox.min.css">
+
+  
+  
+    
+<link rel="stylesheet" href="/js/shareJs/share.min.css">
+
+  
+  <style>
+        @media (max-width: 992px) {
+            #waifu {
+                display: none;
+            }
+        }
+    </style>
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/pink/pace-theme-flash.css" rel="stylesheet">
+
+    
+
+    <!-- import link -->
+    
+        
+            
+        
+            
+        
+    
+    <!-- import script -->
+    
+        
+            
+        
+            
+        
+    
 
 <meta name="generator" content="Hexo 6.1.0"></head>
 
-  <body>
-    <header>
-      
-<div>
-		
-			<div id="imglogo">
-				<a href="/"><img src="/img/logo.png" alt="JsonLu的个人博客网站" title="JsonLu的个人博客网站"/></a>
-			</div>
-			
-			<div id="textlogo">
-				<h1 class="site-name"><a href="/" title="JsonLu的个人博客网站">JsonLu的个人博客网站</a></h1>
-				<h2 class="blog-motto">欢迎各位帅哥美女</h2>
-			</div>
-			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
-			</a></div>
-			<nav class="animated">
-				<ul>
-					<ul>
-					 
-						<li><a href="/">Home</a></li>
-					
-						<li><a href="/archives">Archives</a></li>
-					
-						<li><a href="/about">About</a></li>
-					
-					<li>
- 					
-					<form class="search" action="//google.com/search" method="get" accept-charset="utf-8">
-						<label>Search</label>
-						<input type="search" id="search" name="q" autocomplete="off" maxlength="20" placeholder="搜索" />
-						<input type="hidden" name="q" value="site:blog.b6123.top">
-					</form>
-					
-					</li>
-				</ul>
-			</nav>			
-</div>
-    </header>
-    <div id="container">
-      <div id="main" class="post" itemscope itemprop="blogPost">
   
-	<article itemprop="articleBody"> 
-		<header class="article-info clearfix">
-  <h1 itemprop="name">
+  <!-- 依赖于jquery和vue -->
+  
     
-      <a href="/2022/03/22/nacosym/" title="Nacos源码分析" itemprop="url">Nacos源码分析</a>
-  </h1>
-  <p class="article-author">By
-       
-		<a href="/about" title="JL" target="_blank" itemprop="author">JL</a>
-		
-  <p class="article-time">
-    <time datetime="2022-03-22T06:37:36.000Z" itemprop="datePublished"> 发表于 2022-03-22</time>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+
+  
+
+  
     
-  </p>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.11/dist/vue.min.js"></script>
+
+  
+  
+  <body>
+    <!-- 预加载动画 -->
+    <!-- 页面预加载动画 -->
+
+<div id='loader'>
+  <link rel="stylesheet" href="/js/loaded/index.css" >
+  <div class="loading-left-bg"></div>
+  <div class="loading-right-bg"></div>
+  <div class="spinner-box">
+    <div class="configure-border-1">
+      <div class="configure-core"></div>
+    </div>
+    <div class="configure-border-2">
+      <div class="configure-core"></div>
+    </div>
+    <div class="loading-word">加载中...</div>
+  </div>
+</div>
+
+<script>
+  var endLoading = function () {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loader').classList.add("loading");
+  }
+  window.addEventListener('DOMContentLoaded',endLoading);
+  
+</script>
+
+    
+    <!-- 判断是否为暗黑风格 -->
+    <!-- 判断是否为黑夜模式 -->
+<script>
+  let isDark = JSON.parse(localStorage.getItem('dark')) || JSON.parse('false');
+
+  if (isDark) {
+    $(document.body).addClass('darkModel');
+  }
+</script>
+
+    <!-- 需要在上面加载的js -->
+    <script>
+  function loadScript(src, cb) {
+    return new Promise(resolve => {
+      setTimeout(function () {
+        var HEAD = document.getElementsByTagName("head")[0] || document.documentElement;
+        var script = document.createElement("script");
+        script.setAttribute("type", "text/javascript");
+        if (cb) {
+          if (JSON.stringify(cb)) {
+            for (let p in cb) {
+              if (p == "onload") {
+                script[p] = () => {
+                  cb[p]()
+                  resolve()
+                }
+              } else {
+                script[p] = cb[p]
+                script.onload = resolve
+              }
+            }
+          } else {
+            script.onload = () => {
+              cb()
+              resolve()
+            };
+          }
+        } else {
+          script.onload = resolve
+        }
+        script.setAttribute("src", src);
+        HEAD.appendChild(script);
+      });
+    });
+  }
+
+  //https://github.com/filamentgroup/loadCSS
+  var loadCSS = function (href, before, media, attributes) {
+    return new Promise(resolve => {
+      setTimeout(function () {
+        var link = document.createElement('link');
+        link.rel = "stylesheet";
+        link.href = src;
+        link.onload = resolve;
+        document.getElementsByTagName("head")[0].appendChild(link);
+      });
+    });
+  };
+
+</script> 
+
+<!-- 轮播图所需要的js -->
+<script src="/js/swiper/swiper.min.js"></script>
+<script src="/js/swiper/vue-awesome-swiper.js"></script>
+<script src="/js/swiper/swiper.animate1.0.3.min.js"></script>
+
+<script type="text/javascript">
+  Vue.use(window.VueAwesomeSwiper)
+</script>
+
+
+  <script src="/js/vue-typed-js/index.js"></script>
+
+
+<!-- 首页的公告滚动插件的js需要重新加载 -->
+<script src="/js/vue-seamless-scroll/index.js"></script>
+
+<!-- 打字机效果js -->
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11"></script>
+
+
+    <div id="safearea">
+      <main class="main" id="pjax-container">
+        <!-- 头部导航 -->
+        
+<header class="header   " 
+  id="navHeader"
+  style="position: fixed;
+  left: 0; top: 0; z-index: 10;width: 100%;"
+>
+  <div class="header-content">
+    <div class="bars">
+      <div id="appDrawer" class="sidebar-image">
+  <div class="drawer-box-icon">
+    <i class="fas fa-bars" aria-hidden="true" @click="showDialogDrawer"></i>
+  </div>
+  
+  <transition name="fade">
+    <div class="drawer-box_mask" v-cloak style="display: none;" v-show="visible" @click.self="cancelDialogDrawer">
+    </div>
+  </transition>
+  <div class="drawer-box" :class="{'active': visible}">
+    <div class="drawer-box-head bg-color">
+      <img class="drawer-box-head_logo lazyload placeholder" src="/medias/logo.png" class="lazyload placeholder" data-srcset="/medias/logo.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="logo">
+      <h3 class="drawer-box-head_title">JsonLu的个人博客网站</h3>
+      <h5 class="drawer-box-head_desc">这是我的第一个博客</h5>
+    </div>
+    
+    <div class="drawer-box-content">
+      <ul class="drawer-box-content_menu">
+        
+        
+          <li class="drawer-box-content_item">
+            <a target="_blank" rel="noopener" href="https://github.com/JsonandSesson">
+              <i class="fas fa-github" aria-hidden="true"></i>
+              <span>Github</span>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appDrawer',
+    data: {
+      visible: false,
+      top: 0,
+      openArr: [],
+    },
+    computed: {
+    },
+    mounted() {
+    },
+    methods: {
+      isOpen(index) {
+        if (this.openArr.includes(index)) {
+          return true;
+        } else {
+          return false;
+        }
+      },
+      openOrCloseMenu(curIndex) {
+        const index = this.openArr.indexOf(curIndex);
+        if (index !== -1) {
+          this.openArr.splice(index, 1);
+        } else {
+          this.openArr.push(curIndex);
+        }
+      },
+      showDialogDrawer() {
+        this.visible = true;
+        // 防止页面滚动，只能让弹框滚动
+        this.top = $(document).scrollTop()
+        body.style.cssText = 'width: 100%; height: 100%;overflow: hidden;';
+      },
+      cancelDialogDrawer() {
+        this.visible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      }
+    },
+    created() {}
+  })
+</script>
+
+    </div>
+    <div class="blog-title" id="author-avatar">
+      
+        <div class="avatar">
+          <img src="/medias/logo.png" class="lazyload placeholder" data-srcset="/medias/logo.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="logo">
+        </div>
+      
+      <a href="/" class="logo">JsonLu的个人博客网站</a>
+    </div>
+    <nav class="navbar">
+      <ul class="menu">
+        
+      </ul>
+      
+      
+        <div id="appSearch">
+  <div class="search"  @click="showDialog()"><i class="fas fa-search" aria-hidden="true"></i></div>
+  <transition name="fade">
+    <div class="message-box_wrapper" style="display: none;" v-cloak v-show="dialogVisible" @click.self="cancelDialogVisible()">
+      <div class="message-box animated bounceInDown">
+        <h2>
+          <span>
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <span class="title">本地搜索</span>
+          </span>
+          <i class="fas fa-times close" pointer style="float:right;" aria-hidden="true" @click.self="cancelDialogVisible()"></i>
+        </h2>
+        <form class="site-search-form">
+          <input type="text"
+            placeholder="请输入关键字"
+            id="local-search-input" 
+            @click="getSearchFile()"
+            class="st-search-input"
+            v-model="searchInput"
+          />
+        </form>
+        <div class="result-wrapper">
+          <div id="local-search-result" class="local-search-result-cls"></div>
+        </div>
+      </div>
+    </div>
+  </transition>
+</div>
+<script src="/js/local_search.js"></script>
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appSearch',
+    data: {
+      dialogVisible: false,
+      searchInput: '',
+      top: 0,
+    },
+    computed: {
+    },
+    mounted() {
+      window.addEventListener('pjax:complete', () => {
+        this.cancelDialogVisible();
+      })
+    },
+    methods: {
+      showDialog() {
+        this.dialogVisible = true;
+        // 防止页面滚动，只能让弹框滚动
+        this.top = $(document).scrollTop()
+        body.style.cssText = 'overflow: hidden;';
+      },
+      getSearchFile() {
+        if (!this.searchInput) {
+          getSearchFile("/search.xml");
+        }
+      },
+      cancelDialogVisible() {
+        this.dialogVisible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      },
+    },
+    created() {}
+  })
+</script>
+<!-- 解决刷新页面闪烁问题，可以在元素上添加display: none, 或者用vue.extend方法，详情：https://blog.csdn.net/qq_31393401/article/details/81017912 -->
+<!-- 下面是搜索基本写法 -->
+<!-- <script type="text/javascript" id="local.search.active">
+  var inputArea = document.querySelector("#local-search-input");
+  inputArea.onclick   = function(){ getSearchFile(); this.onclick = null }
+  inputArea.onkeydown = function(){ if(event.keyCode == 13) return false }
+</script> -->
+
+      
+
+    </nav>
+  </div>
+  
+    <a target="_blank" rel="noopener" href="https://github.com/JsonandSesson" class="github-corner color-primary" aria-label="View source on GitHub"><svg width="60" height="60" viewBox="0 0 250 250" style="fill:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+  
+  
 </header>
-	<div class="article-content">
-		
-		<div id="toc" class="toc-article">
-			<strong class="toc-title">文章目录</strong>
-		
-			<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%8B%E8%BD%BDNacos%E6%BA%90%E7%A0%81%E5%B9%B6%E8%BF%90%E8%A1%8C"><span class="toc-number">1.</span> <span class="toc-text">1.下载Nacos源码并运行</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E4%B8%8B%E8%BD%BDNacos%E6%BA%90%E7%A0%81"><span class="toc-number">1.1.</span> <span class="toc-text">1.1.下载Nacos源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E5%AF%BC%E5%85%A5Demo%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">1.2.导入Demo工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E5%AF%BC%E5%85%A5Nacos%E6%BA%90%E7%A0%81"><span class="toc-number">1.3.</span> <span class="toc-text">1.3.导入Nacos源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-proto%E7%BC%96%E8%AF%91"><span class="toc-number">1.4.</span> <span class="toc-text">1.4.proto编译</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-1-%E4%BB%80%E4%B9%88%E6%98%AFprotobuf"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.4.1.什么是protobuf</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-2-%E5%AE%89%E8%A3%85protoc"><span class="toc-number">1.4.2.</span> <span class="toc-text">1.4.2.安装protoc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-3-%E7%BC%96%E8%AF%91proto"><span class="toc-number">1.4.3.</span> <span class="toc-text">1.4.3.编译proto</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-%E8%BF%90%E8%A1%8C"><span class="toc-number">1.5.</span> <span class="toc-text">1.5.运行</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C"><span class="toc-number">2.</span> <span class="toc-text">2.服务注册</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E6%8E%A5%E5%8F%A3"><span class="toc-number">2.1.</span> <span class="toc-text">2.1.服务注册接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">2.2.</span> <span class="toc-text">2.2.客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-NacosServiceRegistryAutoConfiguration"><span class="toc-number">2.2.1.</span> <span class="toc-text">2.2.1.NacosServiceRegistryAutoConfiguration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-NacosAutoServiceRegistration"><span class="toc-number">2.2.2.</span> <span class="toc-text">2.2.2.NacosAutoServiceRegistration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-NacosServiceRegistry"><span class="toc-number">2.2.3.</span> <span class="toc-text">2.2.3.NacosServiceRegistry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4-NacosNamingService"><span class="toc-number">2.2.4.</span> <span class="toc-text">2.2.4.NacosNamingService</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5-%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B3%A8%E5%86%8C%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">2.2.5.</span> <span class="toc-text">2.2.5.客户端注册的流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">2.3.</span> <span class="toc-text">2.3.服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-1-InstanceController"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.3.1.InstanceController</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-2-ServiceManager"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.3.2.ServiceManager</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%EF%BC%89%E6%9B%B4%E6%9C%8D%E5%8A%A1%E5%88%97%E8%A1%A8"><span class="toc-number">2.3.2.1.</span> <span class="toc-text">1）更服务列表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%EF%BC%89Nacos%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.3.2.2.</span> <span class="toc-text">2）Nacos集群一致性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-4-DistroConsistencyServiceImpl"><span class="toc-number">2.3.3.</span> <span class="toc-text">2.3.4.DistroConsistencyServiceImpl</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-4-1-%E6%9B%B4%E6%96%B0%E6%9C%AC%E5%9C%B0%E5%AE%9E%E4%BE%8B%E5%88%97%E8%A1%A8"><span class="toc-number">2.3.3.1.</span> <span class="toc-text">2.3.4.1.更新本地实例列表</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1%EF%BC%89%E6%94%BE%E5%85%A5%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="toc-number">2.3.3.1.1.</span> <span class="toc-text">1）放入阻塞队列</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%EF%BC%89Notifier%E5%BC%82%E6%AD%A5%E6%9B%B4%E6%96%B0"><span class="toc-number">2.3.3.1.2.</span> <span class="toc-text">2）Notifier异步更新</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3%EF%BC%89%E8%A6%86%E7%9B%96%E5%AE%9E%E4%BE%8B%E5%88%97%E8%A1%A8"><span class="toc-number">2.3.3.1.3.</span> <span class="toc-text">3）覆盖实例列表</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-4-2-%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5"><span class="toc-number">2.3.3.2.</span> <span class="toc-text">2.3.4.2.集群数据同步</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">2.3.4.</span> <span class="toc-text">2.3.5.服务端流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-%E6%80%BB%E7%BB%93"><span class="toc-number">2.4.</span> <span class="toc-text">2.4.总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%9C%8D%E5%8A%A1%E5%BF%83%E8%B7%B3"><span class="toc-number">3.</span> <span class="toc-text">3.服务心跳</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">3.1.</span> <span class="toc-text">3.1.客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-1-BeatInfo"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1.BeatInfo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-2-BeatReactor"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2.BeatReactor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-3-BeatTask"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.1.3.BeatTask</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-5-%E5%8F%91%E9%80%81%E5%BF%83%E8%B7%B3"><span class="toc-number">3.1.4.</span> <span class="toc-text">3.1.5.发送心跳</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">3.2.</span> <span class="toc-text">3.2.服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-InstanceController"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1.InstanceController</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-%E5%A4%84%E7%90%86%E5%BF%83%E8%B7%B3%E8%AF%B7%E6%B1%82"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2.处理心跳请求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-3-%E5%BF%83%E8%B7%B3%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3.3.心跳异常检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-4-%E4%B8%BB%E5%8A%A8%E5%81%A5%E5%BA%B7%E6%A3%80%E6%B5%8B"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.3.4.主动健康检测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-%E6%80%BB%E7%BB%93"><span class="toc-number">3.3.</span> <span class="toc-text">3.3.总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">4.服务发现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">4.1.</span> <span class="toc-text">4.1.客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-1-%E5%AE%9A%E6%97%B6%E6%9B%B4%E6%96%B0%E6%9C%8D%E5%8A%A1%E5%88%97%E8%A1%A8"><span class="toc-number">4.1.1.</span> <span class="toc-text">4.1.1.定时更新服务列表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-1-NacosNamingService"><span class="toc-number">4.1.1.1.</span> <span class="toc-text">4.1.1.1.NacosNamingService</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-2-HostReactor"><span class="toc-number">4.1.1.2.</span> <span class="toc-text">4.1.1.2.HostReactor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-3-ServerProxy"><span class="toc-number">4.1.1.3.</span> <span class="toc-text">4.1.1.3.ServerProxy</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-2-%E5%A4%84%E7%90%86%E6%9C%8D%E5%8A%A1%E5%8F%98%E6%9B%B4%E9%80%9A%E7%9F%A5"><span class="toc-number">4.1.2.</span> <span class="toc-text">4.1.2.处理服务变更通知</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-1-PushReceiver"><span class="toc-number">4.1.2.1.</span> <span class="toc-text">4.1.2.1.PushReceiver</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-2-HostReactor"><span class="toc-number">4.1.2.2.</span> <span class="toc-text">4.1.2.2.HostReactor</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">4.2.</span> <span class="toc-text">4.2.服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-1-%E6%8B%89%E5%8F%96%E6%9C%8D%E5%8A%A1%E5%88%97%E8%A1%A8%E6%8E%A5%E5%8F%A3"><span class="toc-number">4.2.1.</span> <span class="toc-text">4.2.1.拉取服务列表接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-2-%E5%8F%91%E5%B8%83%E6%9C%8D%E5%8A%A1%E5%8F%98%E6%9B%B4%E7%9A%84UDP%E9%80%9A%E7%9F%A5"><span class="toc-number">4.2.2.</span> <span class="toc-text">4.2.2.发布服务变更的UDP通知</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-%E6%80%BB%E7%BB%93"><span class="toc-number">4.3.</span> <span class="toc-text">4.3.总结</span></a></li></ol></li></ol>
-		
-		</div>
-		
-		<h1 id="1-下载Nacos源码并运行"><a href="#1-下载Nacos源码并运行" class="headerlink" title="1.下载Nacos源码并运行"></a>1.下载Nacos源码并运行</h1><p>要研究Nacos源码自然不能用打包好的Nacos服务端jar包来运行，需要下载源码自己编译来运行。</p>
+        <!-- 内容区域 -->
+        
+ <!-- prismjs 代码高亮 -->
+ 
+
+
+<div class="bg-dark-floor" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -1;"></div>
+
+
+  <!-- 文章详情页顶部图片和标题 -->
+
+
+
+
+<div class="post-detail-header" id="thumbnail_canvas" style="background-repeat: no-repeat; background-size: cover; 
+  background-position: center center;position: relative;background-image:url('/medias/13.jpg')">
+  <div class="post-detail-header-mask"></div>
+  <canvas id="header_canvas"style="position:absolute;bottom:0;pointer-events:none;"></canvas>
+  
+  <div class="post-detail-header_info-box">
+    <div class="title-box">
+      <span class="title">
+        Nacos源码分析
+      </span>
+    </div>
+    
+    
+      
+        <span class="post-detail-header_date">
+          <i class="fas fa-calendar"></i> 发表于：2022-03-22 |
+        </span>
+      
+
+      
+        <span class="post-detail-header_categories">
+          <i class="iconfont iconbookmark1"></i> 分类：
+          
+            <a href="/categories/springcloud/" class="post-detail-header_category">
+              springcloud
+            </a>
+          
+        </span>
+      
+
+      
+        <div class="post-detail-header_wordcount">
+          <span class="totalcount">
+            <i class="fas fa-file-text-o"></i> 字数统计: 12.5k |
+          </span>
+  
+          <span class="min2read">
+            <i class="fas fa-clock"></i> 阅读时长: 57分钟 |
+          </span>
+  
+          
+            <span class="reading">
+              <i class="fas fa-eye"></i> 阅读量：<span id="busuanzi_value_page_pv"></span>
+            </span>
+          
+        </div>
+      
+    
+  </div>
+  
+  
+    <script src="/js/bubble/bubble.js"></script>
+  
+</div>
+
+
+
+
+
+<div class="row justify-position" 
+  style="padding-top: 0px;">
+  <div class="main-content">
+    <article class="post post-detail">
+      <div class="post-content">
+        <h1 id="1-下载Nacos源码并运行"><a href="#1-下载Nacos源码并运行" class="headerlink" title="1.下载Nacos源码并运行"></a>1.下载Nacos源码并运行</h1><p>要研究Nacos源码自然不能用打包好的Nacos服务端jar包来运行，需要下载源码自己编译来运行。</p>
 <h2 id="1-1-下载Nacos源码"><a href="#1-1-下载Nacos源码" class="headerlink" title="1.1.下载Nacos源码"></a>1.1.下载Nacos源码</h2><p>Nacos的GitHub地址：<a target="_blank" rel="noopener" href="https://github.com/alibaba/nacos">https://github.com/alibaba/nacos</a></p>
 <p>课前资料中已经提供了下载好的1.4.2版本的Nacos源码：</p>
-<p><img src="/../../images/image-20210906105652113.png" alt="image-20210906105652113"> </p>
+<p><img src="/../../images/image-20210906105652113.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906105652113.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906105652113"> </p>
 <p>如果需要研究其他版本的同学，也可以自行下载：</p>
 <p>大家找到其release页面：<a target="_blank" rel="noopener" href="https://github.com/alibaba/nacos/tags%EF%BC%8C%E6%89%BE%E5%88%B0%E5%85%B6%E4%B8%AD%E7%9A%841.4.2.%E7%89%88%E6%9C%AC%EF%BC%9A">https://github.com/alibaba/nacos/tags，找到其中的1.4.2.版本：</a></p>
-<p><img src="/../../images/image-20210906105157409.png" alt="image-20210906105157409"></p>
+<p><img src="/../../images/image-20210906105157409.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906105157409.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906105157409"></p>
 <p>点击进入后，下载Source code(zip)：</p>
-<p><img src="/../../images/image-20210906105102668.png" alt="image-20210906105102668"></p>
+<p><img src="/../../images/image-20210906105102668.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906105102668.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906105102668"></p>
 <h2 id="1-2-导入Demo工程"><a href="#1-2-导入Demo工程" class="headerlink" title="1.2.导入Demo工程"></a>1.2.导入Demo工程</h2><p>我们的课前资料提供了一个微服务Demo，包含了服务注册、发现等业务。</p>
-<p><img src="/../../images/image-20210906105858000.png" alt="image-20210906105858000"> </p>
+<p><img src="/../../images/image-20210906105858000.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906105858000.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906105858000"> </p>
 <p>导入该项目后，查看其项目结构：</p>
-<p><img src="/../../images/image-20210906110014198.png" alt="image-20210906110014198"> </p>
+<p><img src="/../../images/image-20210906110014198.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906110014198.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906110014198"> </p>
 <p>结构说明：</p>
 <ul>
 <li>cloud-source-demo：项目父目录<ul>
@@ -187,22 +496,22 @@
 </li>
 </ul>
 <h2 id="1-3-导入Nacos源码"><a href="#1-3-导入Nacos源码" class="headerlink" title="1.3.导入Nacos源码"></a>1.3.导入Nacos源码</h2><p>将之前下载好的Nacos源码解压到cloud-source-demo项目目录中：</p>
-<p><img src="/../../images/image-20210906111053263.png" alt="image-20210906111053263"> </p>
+<p><img src="/../../images/image-20210906111053263.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111053263.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111053263"> </p>
 <p>然后，使用IDEA将其作为一个module来导入：</p>
 <p>1）选择项目结构选项：</p>
-<p><img src="/../../images/image-20210906111152447.png" alt="image-20210906111152447"> </p>
+<p><img src="/../../images/image-20210906111152447.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111152447.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111152447"> </p>
 <p>然后点击导入module：</p>
-<p><img src="/../../images/image-20210906111259352.png" alt="image-20210906111259352"> </p>
+<p><img src="/../../images/image-20210906111259352.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111259352.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111259352"> </p>
 <p>在弹出窗口中，选择nacos源码目录：</p>
-<p><img src="/../../images/image-20210906111422406.png" alt="image-20210906111422406"></p>
+<p><img src="/../../images/image-20210906111422406.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111422406.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111422406"></p>
 <p>然后选择maven模块，finish：</p>
-<p><img src="/../../images/image-20210906111519198.png" alt="image-20210906111519198"></p>
+<p><img src="/../../images/image-20210906111519198.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111519198.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111519198"></p>
 <p>最后，点击OK即可：</p>
-<p><img src="/../../images/image-20210906111543747.png" alt="image-20210906111543747"></p>
+<p><img src="/../../images/image-20210906111543747.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111543747.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111543747"></p>
 <p>导入后的项目结构：</p>
-<p><img src="/../../images/image-20210906111632336.png" alt="image-20210906111632336"></p>
+<p><img src="/../../images/image-20210906111632336.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111632336.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111632336"></p>
 <h2 id="1-4-proto编译"><a href="#1-4-proto编译" class="headerlink" title="1.4.proto编译"></a>1.4.proto编译</h2><p>Nacos底层的数据通信会基于protobuf对数据做序列化和反序列化。并将对应的proto文件定义在了consistency这个子模块中：</p>
-<p><img src="/../../images/image-20210906111941399.png" alt="image-20210906111941399"></p>
+<p><img src="/../../images/image-20210906111941399.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906111941399.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906111941399"></p>
 <p>我们需要先将proto文件编译为对应的Java代码。</p>
 <h3 id="1-4-1-什么是protobuf"><a href="#1-4-1-什么是protobuf" class="headerlink" title="1.4.1.什么是protobuf"></a>1.4.1.什么是protobuf</h3><p>protobuf的全称是Protocol Buffer，是Google提供的一种数据序列化协议，这是Google官方的定义：</p>
 <blockquote>
@@ -212,36 +521,36 @@
 <p>protobuf的之所以可以跨语言，就是因为数据定义的格式为<code>.proto</code>格式，需要基于protoc编译为对应的语言。</p>
 <h3 id="1-4-2-安装protoc"><a href="#1-4-2-安装protoc" class="headerlink" title="1.4.2.安装protoc"></a>1.4.2.安装protoc</h3><p>Protobuf的GitHub地址：<a target="_blank" rel="noopener" href="https://github.com/protocolbuffers/protobuf/releases">https://github.com/protocolbuffers/protobuf/releases</a></p>
 <p>我们可以下载windows版本的来使用：</p>
-<p><img src="/../../images/image-20210906112814549.png" alt="image-20210906112814549"></p>
+<p><img src="/../../images/image-20210906112814549.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906112814549.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906112814549"></p>
 <p>另外，课前资料也提供了下载好的安装包：</p>
-<p><img src="/../../images/image-20210906112920575.png" alt="image-20210906112920575"> </p>
+<p><img src="/../../images/image-20210906112920575.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906112920575.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906112920575"> </p>
 <p>解压到任意非中文目录下，其中的bin目录中的protoc.exe可以帮助我们编译：</p>
-<p><img src="/../../images/image-20210906113011871.png" alt="image-20210906113011871"></p>
+<p><img src="/../../images/image-20210906113011871.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906113011871.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906113011871"></p>
 <p>然后将这个bin目录配置到你的环境变量path中，可以参考JDK的配置方式：</p>
-<p><img src="/../../images/image-20210906113552081.png" alt="image-20210906113552081"></p>
+<p><img src="/../../images/image-20210906113552081.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906113552081.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906113552081"></p>
 <h3 id="1-4-3-编译proto"><a href="#1-4-3-编译proto" class="headerlink" title="1.4.3.编译proto"></a>1.4.3.编译proto</h3><p>进入nacos-1.4.2的consistency模块下的src&#x2F;main目录下：</p>
-<p><img src="/../../images/image-20210906113655302.png" alt="image-20210906113655302"></p>
+<p><img src="/../../images/image-20210906113655302.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906113655302.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906113655302"></p>
 <p>然后打开cmd窗口，运行下面的两个命令：</p>
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">protoc <span class="literal">--java_out</span>=./java ./proto/consistency.proto</span><br><span class="line">protoc <span class="literal">--java_out</span>=./java ./proto/Data.proto</span><br></pre></td></tr></table></figure>
 
 <p>如图：</p>
-<p><img src="/../../images/image-20210906113829647.png" alt="image-20210906113829647"></p>
+<p><img src="/../../images/image-20210906113829647.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906113829647.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906113829647"></p>
 <p>会在nacos的consistency模块中编译出这些java代码：</p>
-<p><img src="/../../images/image-20210906113923430.png" alt="image-20210906113923430"></p>
+<p><img src="/../../images/image-20210906113923430.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906113923430.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906113923430"></p>
 <h2 id="1-5-运行"><a href="#1-5-运行" class="headerlink" title="1.5.运行"></a>1.5.运行</h2><p>nacos服务端的入口是在console模块中的Nacos类：</p>
-<p><img src="/../../images/image-20210906114035628.png" alt="image-20210906114035628"> </p>
+<p><img src="/../../images/image-20210906114035628.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906114035628.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906114035628"> </p>
 <p>我们需要让它单机启动：</p>
-<p><img src="/../../images/image-20210906114143669.png" alt="image-20210906114143669"> </p>
+<p><img src="/../../images/image-20210906114143669.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906114143669.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906114143669"> </p>
 <p>然后新建一个SpringBootApplication：</p>
-<p><img src="/../../images/image-20210906114220412.png" alt="image-20210906114220412"> </p>
+<p><img src="/../../images/image-20210906114220412.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906114220412.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906114220412"> </p>
 <p>然后填写应用信息：</p>
-<p><img src="/../../images/image-20210906114519073.png" alt="image-20210906114519073"></p>
+<p><img src="/../../images/image-20210906114519073.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906114519073.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906114519073"></p>
 <p>然后运行Nacos这个main函数：</p>
-<p><img src="/../../images/image-20210906114705910.png" alt="image-20210906114705910"></p>
+<p><img src="/../../images/image-20210906114705910.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906114705910.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906114705910"></p>
 <p>将order-service和user-service服务启动后，可以查看nacos控制台：</p>
-<p><img src="/../../images/image-20210906151358154.png" alt="image-20210906151358154"></p>
+<p><img src="/../../images/image-20210906151358154.png" class="lazyload placeholder" data-srcset="/../../images/image-20210906151358154.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210906151358154"></p>
 <h1 id="2-服务注册"><a href="#2-服务注册" class="headerlink" title="2.服务注册"></a>2.服务注册</h1><p>服务注册到Nacos以后，会保存在一个本地注册表中，其结构如下：</p>
-<p><img src="/../../images/image-20210922111651314.png" alt="image-20210922111651314"></p>
+<p><img src="/../../images/image-20210922111651314.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922111651314.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922111651314"></p>
 <p>首先最外层是一个Map，结构为：<code>Map&lt;String, Map&lt;String, Service&gt;&gt;</code>：</p>
 <ul>
 <li>key：是namespace_id，起到环境隔离的作用。namespace下可以有多个group</li>
@@ -379,18 +688,18 @@
 <h3 id="2-2-1-NacosServiceRegistryAutoConfiguration"><a href="#2-2-1-NacosServiceRegistryAutoConfiguration" class="headerlink" title="2.2.1.NacosServiceRegistryAutoConfiguration"></a>2.2.1.NacosServiceRegistryAutoConfiguration</h3><p>因为Nacos的客户端是基于SpringBoot的自动装配实现的，我们可以在nacos-discovery依赖：</p>
 <p><code>spring-cloud-starter-alibaba-nacos-discovery-2.2.6.RELEASE.jar</code></p>
 <p>这个包中找到Nacos自动装配信息：</p>
-<p><img src="/../../images/image-20210907201333049.png" alt="image-20210907201333049"></p>
+<p><img src="/../../images/image-20210907201333049.png" class="lazyload placeholder" data-srcset="/../../images/image-20210907201333049.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210907201333049"></p>
 <p>可以看到，有很多个自动配置类被加载了，其中跟服务注册有关的就是NacosServiceRegistryAutoConfiguration这个类，我们跟入其中。</p>
 <p>可以看到，在NacosServiceRegistryAutoConfiguration这个类中，包含一个跟自动注册有关的Bean：</p>
-<p><img src="/../../images/image-20210907201612322.png" alt="image-20210907201612322"></p>
+<p><img src="/../../images/image-20210907201612322.png" class="lazyload placeholder" data-srcset="/../../images/image-20210907201612322.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210907201612322"></p>
 <h3 id="2-2-2-NacosAutoServiceRegistration"><a href="#2-2-2-NacosAutoServiceRegistration" class="headerlink" title="2.2.2.NacosAutoServiceRegistration"></a>2.2.2.NacosAutoServiceRegistration</h3><p><code>NacosAutoServiceRegistration</code>源码如图：</p>
-<p><img src="/../../images/image-20210907213647145.png" alt="image-20210907213647145"></p>
+<p><img src="/../../images/image-20210907213647145.png" class="lazyload placeholder" data-srcset="/../../images/image-20210907213647145.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210907213647145"></p>
 <p>可以看到在初始化时，其父类<code>AbstractAutoServiceRegistration</code>也被初始化了。</p>
 <p><code>AbstractAutoServiceRegistration</code>如图：</p>
-<p><img src="/../../images/image-20210907214111801.png" alt="image-20210907214111801"></p>
+<p><img src="/../../images/image-20210907214111801.png" class="lazyload placeholder" data-srcset="/../../images/image-20210907214111801.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210907214111801"></p>
 <p>可以看到它实现了<code>ApplicationListener</code>接口，监听Spring容器启动过程中的事件。</p>
 <p>在监听到<code>WebServerInitializedEvent</code>（web服务初始化完成）的事件后，执行了<code>bind</code> 方法。</p>
-<p><img src="/../../images/image-20210907214411267.png" alt="image-20210907214411267"></p>
+<p><img src="/../../images/image-20210907214411267.png" class="lazyload placeholder" data-srcset="/../../images/image-20210907214411267.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210907214411267"></p>
 <p>其中的bind方法如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">bind</span><span class="params">(WebServerInitializedEvent event)</span> &#123;</span><br><span class="line">    <span class="comment">// 获取 ApplicationContext</span></span><br><span class="line">    <span class="type">ApplicationContext</span> <span class="variable">context</span> <span class="operator">=</span> event.getApplicationContext();</span><br><span class="line">    <span class="comment">// 判断服务的 namespace,一般都是null</span></span><br><span class="line">    <span class="keyword">if</span> (context <span class="keyword">instanceof</span> ConfigurableWebServerApplicationContext) &#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="string">&quot;management&quot;</span>.equals(((ConfigurableWebServerApplicationContext) context)</span><br><span class="line">                                .getServerNamespace())) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 记录当前 web 服务的端口</span></span><br><span class="line">    <span class="built_in">this</span>.port.compareAndSet(<span class="number">0</span>, event.getWebServer().getPort());</span><br><span class="line">    <span class="comment">// 启动当前服务注册流程</span></span><br><span class="line">    <span class="built_in">this</span>.start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -403,7 +712,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">register</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="built_in">this</span>.serviceRegistry.register(getRegistration());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>此处的this.serviceRegistry就是NacosServiceRegistry：</p>
-<p><img src="/../../images/image-20210907215903335.png" alt="image-20210907215903335"></p>
+<p><img src="/../../images/image-20210907215903335.png" class="lazyload placeholder" data-srcset="/../../images/image-20210907215903335.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210907215903335"></p>
 <h3 id="2-2-3-NacosServiceRegistry"><a href="#2-2-3-NacosServiceRegistry" class="headerlink" title="2.2.3.NacosServiceRegistry"></a>2.2.3.NacosServiceRegistry</h3><p><code>NacosServiceRegistry</code>是Spring的<code>ServiceRegistry</code>接口的实现类，而ServiceRegistry接口是服务注册、发现的规约接口，定义了register、deregister等方法的声明。</p>
 <p>而<code>NacosServiceRegistry</code>对<code>register</code>的实现如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">register</span><span class="params">(Registration registration)</span> &#123;</span><br><span class="line">	<span class="comment">// 判断serviceId是否为空，也就是spring.application.name不能为空</span></span><br><span class="line">    <span class="keyword">if</span> (StringUtils.isEmpty(registration.getServiceId())) &#123;</span><br><span class="line">        log.warn(<span class="string">&quot;No service to register for nacos client...&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取Nacos的命名服务，其实就是注册中心服务</span></span><br><span class="line">    <span class="type">NamingService</span> <span class="variable">namingService</span> <span class="operator">=</span> namingService();</span><br><span class="line">    <span class="comment">// 获取 serviceId 和 Group</span></span><br><span class="line">    <span class="type">String</span> <span class="variable">serviceId</span> <span class="operator">=</span> registration.getServiceId();</span><br><span class="line">    <span class="type">String</span> <span class="variable">group</span> <span class="operator">=</span> nacosDiscoveryProperties.getGroup();</span><br><span class="line">	<span class="comment">// 封装服务实例的基本信息，如 cluster-name、是否为临时实例、权重、IP、端口等</span></span><br><span class="line">    <span class="type">Instance</span> <span class="variable">instance</span> <span class="operator">=</span> getNacosInstanceFromRegistration(registration);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 开始注册服务</span></span><br><span class="line">        namingService.registerInstance(serviceId, group, instance);</span><br><span class="line">        log.info(<span class="string">&quot;nacos registry, &#123;&#125; &#123;&#125; &#123;&#125;:&#123;&#125; register finished&quot;</span>, group, serviceId,</span><br><span class="line">                 instance.getIp(), instance.getPort());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">if</span> (nacosDiscoveryProperties.isFailFast()) &#123;</span><br><span class="line">            log.error(<span class="string">&quot;nacos registry, &#123;&#125; register failed...&#123;&#125;,&quot;</span>, serviceId,</span><br><span class="line">                      registration.toString(), e);</span><br><span class="line">            rethrowRuntimeException(e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">else</span> &#123;</span><br><span class="line">            log.warn(<span class="string">&quot;Failfast is false. &#123;&#125; register failed...&#123;&#125;,&quot;</span>, serviceId,</span><br><span class="line">                     registration.toString(), e);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -430,15 +739,15 @@
 <li>port: 当前实例的端口</li>
 </ul>
 <p>而在NacosNamingService的registerInstance方法中，有一段是与服务心跳有关的代码，我们在后续会继续学习。</p>
-<p><img src="/../../images/image-20210908141019175.png" alt="image-20210908141019175"></p>
+<p><img src="/../../images/image-20210908141019175.png" class="lazyload placeholder" data-srcset="/../../images/image-20210908141019175.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210908141019175"></p>
 <h3 id="2-2-5-客户端注册的流程图"><a href="#2-2-5-客户端注册的流程图" class="headerlink" title="2.2.5.客户端注册的流程图"></a>2.2.5.客户端注册的流程图</h3><p>如图：</p>
-<p><img src="/../../images/image-20210923185331470.png" alt="image-20210923185331470"></p>
+<p><img src="/../../images/image-20210923185331470.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923185331470.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923185331470"></p>
 <h2 id="2-3-服务端"><a href="#2-3-服务端" class="headerlink" title="2.3.服务端"></a>2.3.服务端</h2><p>在nacos-console的模块中，会引入nacos-naming这个模块：</p>
-<p><img src="/../../images/image-20210922112801808.png" alt="image-20210922112801808"></p>
+<p><img src="/../../images/image-20210922112801808.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922112801808.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922112801808"></p>
 <p>模块结构如下：</p>
-<p><img src="/../../images/image-20210922112954630.png" alt="image-20210922112954630"></p>
+<p><img src="/../../images/image-20210922112954630.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922112954630.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922112954630"></p>
 <p>其中的com.alibaba.nacos.naming.controllers包下就有服务注册、发现等相关的各种接口，其中的服务注册是在<code>InstanceController</code>类中：</p>
-<p><img src="/../../images/image-20210922113158618.png" alt="image-20210922113158618"></p>
+<p><img src="/../../images/image-20210922113158618.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922113158618.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922113158618"></p>
 <h3 id="2-3-1-InstanceController"><a href="#2-3-1-InstanceController" class="headerlink" title="2.3.1.InstanceController"></a>2.3.1.InstanceController</h3><p>进入InstanceController类，可以看到一个register方法，就是服务注册的方法了：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@CanDistro</span></span><br><span class="line"><span class="meta">@PostMapping</span></span><br><span class="line"><span class="meta">@Secured(parser = NamingResourceParser.class, action = ActionTypes.WRITE)</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">register</span><span class="params">(HttpServletRequest request)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">	<span class="comment">// 尝试获取namespaceId</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">String</span> <span class="variable">namespaceId</span> <span class="operator">=</span> WebUtils</span><br><span class="line">        .optional(request, CommonParams.NAMESPACE_ID, Constants.DEFAULT_NAMESPACE_ID);</span><br><span class="line">    <span class="comment">// 尝试获取serviceName，其格式为 group_name@@service_name</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">String</span> <span class="variable">serviceName</span> <span class="operator">=</span> WebUtils.required(request, CommonParams.SERVICE_NAME);</span><br><span class="line">    NamingUtils.checkServiceNameFormat(serviceName);</span><br><span class="line">	<span class="comment">// 解析出实例信息，封装为Instance对象</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">Instance</span> <span class="variable">instance</span> <span class="operator">=</span> parseInstance(request);</span><br><span class="line">	<span class="comment">// 注册实例</span></span><br><span class="line">    serviceManager.registerInstance(namespaceId, serviceName, instance);</span><br><span class="line">    <span class="keyword">return</span> <span class="string">&quot;ok&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -446,7 +755,7 @@
 
 <p>这里，进入到了serviceManager.registerInstance()方法中。</p>
 <h3 id="2-3-2-ServiceManager"><a href="#2-3-2-ServiceManager" class="headerlink" title="2.3.2.ServiceManager"></a>2.3.2.ServiceManager</h3><p>ServiceManager就是Nacos中管理服务、实例信息的核心API，其中就包含Nacos的服务注册表：</p>
-<p><img src="/../../images/image-20210922141703128.png" alt="image-20210922141703128"></p>
+<p><img src="/../../images/image-20210922141703128.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922141703128.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922141703128"></p>
 <p>而其中的registerInstance方法就是注册服务实例的方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Register an instance to a service in AP mode.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * &lt;p&gt;This method creates service or cluster silently if they don&#x27;t exist.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> namespaceId id of namespace</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> serviceName service name</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> instance    instance to register</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> Exception any error occurred in the process</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">registerInstance</span><span class="params">(String namespaceId, String serviceName, Instance instance)</span> <span class="keyword">throws</span> NacosException &#123;</span><br><span class="line">	<span class="comment">// 创建一个空的service（如果是第一次来注册实例，要先创建一个空service出来，放入注册表）</span></span><br><span class="line">    <span class="comment">// 此时不包含实例信息</span></span><br><span class="line">    createEmptyService(namespaceId, serviceName, instance.isEphemeral());</span><br><span class="line">    <span class="comment">// 拿到创建好的service</span></span><br><span class="line">    <span class="type">Service</span> <span class="variable">service</span> <span class="operator">=</span> getService(namespaceId, serviceName);</span><br><span class="line">    <span class="comment">// 拿不到则抛异常</span></span><br><span class="line">    <span class="keyword">if</span> (service == <span class="literal">null</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">NacosException</span>(NacosException.INVALID_PARAM,</span><br><span class="line">                                 <span class="string">&quot;service not found, namespace: &quot;</span> + namespaceId + <span class="string">&quot;, service: &quot;</span> + serviceName);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 添加要注册的实例到service中</span></span><br><span class="line">    addInstance(namespaceId, serviceName, instance.isEphemeral(), instance);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -477,7 +786,7 @@
 <h4 id="2）Nacos集群一致性"><a href="#2）Nacos集群一致性" class="headerlink" title="2）Nacos集群一致性"></a>2）Nacos集群一致性</h4><p>在完成本地服务列表更新后，Nacos又实现了集群一致性更新，调用的是:</p>
 <p><code>consistencyService.put(key, instances);</code></p>
 <p>这里的ConsistencyService接口，代表集群一致性的接口，有很多中不同实现：</p>
-<p><img src="/../../images/image-20210922161705573.png" alt="image-20210922161705573"></p>
+<p><img src="/../../images/image-20210922161705573.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922161705573.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922161705573"></p>
 <p>我们进入DelegateConsistencyServiceImpl来看：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(String key, Record value)</span> <span class="keyword">throws</span> NacosException &#123;</span><br><span class="line">    <span class="comment">// 根据实例是否是临时实例，判断委托对象</span></span><br><span class="line">    mapConsistencyService(key).put(key, value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -502,7 +811,7 @@
 
 
 <p>notifier的类型就是<code>DistroConsistencyServiceImpl.Notifier</code>，内部维护了一个阻塞队列，存放服务列表变更的事件：</p>
-<p><img src="/../../images/image-20210922180246555.png" alt="image-20210922180246555"></p>
+<p><img src="/../../images/image-20210922180246555.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922180246555.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922180246555"></p>
 <p>addTask时，将任务加入该阻塞队列：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// DistroConsistencyServiceImpl.Notifier类的 addTask 方法：</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addTask</span><span class="params">(String datumKey, DataOperation action)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (services.containsKey(datumKey) &amp;&amp; action == DataOperation.CHANGE) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (action == DataOperation.CHANGE) &#123;</span><br><span class="line">        services.put(datumKey, StringUtils.EMPTY);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 任务放入阻塞队列</span></span><br><span class="line">    tasks.offer(Pair.with(datumKey, action));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -531,7 +840,7 @@
 
 
 <h4 id="2-3-4-2-集群数据同步"><a href="#2-3-4-2-集群数据同步" class="headerlink" title="2.3.4.2.集群数据同步"></a>2.3.4.2.集群数据同步</h4><p>在DistroConsistencyServiceImpl的put方法中分为两步：</p>
-<p><img src="/../../images/image-20210922195603450.png" alt="image-20210922195603450"></p>
+<p><img src="/../../images/image-20210922195603450.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922195603450.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922195603450"></p>
 <p>其中的onPut方法已经分析过了。</p>
 <p>下面的distroProtocol.sync()就是集群同步的逻辑了。</p>
 <p>DistroProtocol类的sync方法如下：</p>
@@ -548,7 +857,7 @@
 
 
 <p>可以看出来基于Distro模式的同步是异步进行的，并且失败时会将任务重新入队并充实，因此不保证同步结果的强一致性，属于AP模式的一致性策略。</p>
-<h3 id="2-3-5-服务端流程图"><a href="#2-3-5-服务端流程图" class="headerlink" title="2.3.5.服务端流程图"></a>2.3.5.服务端流程图</h3><p><img src="/../../images/image-20210923214042926.png" alt="image-20210923214042926"></p>
+<h3 id="2-3-5-服务端流程图"><a href="#2-3-5-服务端流程图" class="headerlink" title="2.3.5.服务端流程图"></a>2.3.5.服务端流程图</h3><p><img src="/../../images/image-20210923214042926.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923214042926.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923214042926"></p>
 <h2 id="2-4-总结"><a href="#2-4-总结" class="headerlink" title="2.4.总结"></a>2.4.总结</h2><ul>
 <li><p>Nacos的注册表结构是什么样的？</p>
 <ul>
@@ -664,16 +973,16 @@
 
 
 <h3 id="3-1-1-BeatInfo"><a href="#3-1-1-BeatInfo" class="headerlink" title="3.1.1.BeatInfo"></a>3.1.1.BeatInfo</h3><p>这里的BeanInfo就包含心跳需要的各种信息：</p>
-<p><img src="/../../images/image-20210922213313677.png" alt="image-20210922213313677"></p>
+<p><img src="/../../images/image-20210922213313677.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922213313677.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922213313677"></p>
 <h3 id="3-1-2-BeatReactor"><a href="#3-1-2-BeatReactor" class="headerlink" title="3.1.2.BeatReactor"></a>3.1.2.BeatReactor</h3><p>而<code>BeatReactor</code>这个类则维护了一个线程池：</p>
-<p><img src="/../../images/image-20210922213455549.png" alt="image-20210922213455549"></p>
+<p><img src="/../../images/image-20210922213455549.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922213455549.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922213455549"></p>
 <p>当调用<code>BeatReactor</code>的<code>.addBeatInfo(groupedServiceName, beatInfo)</code>方法时，就会执行心跳：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">addBeatInfo</span><span class="params">(String serviceName, BeatInfo beatInfo)</span> &#123;</span><br><span class="line">    NAMING_LOGGER.info(<span class="string">&quot;[BEAT] adding beat: &#123;&#125; to beat map.&quot;</span>, beatInfo);</span><br><span class="line">    <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> buildKey(serviceName, beatInfo.getIp(), beatInfo.getPort());</span><br><span class="line">    <span class="type">BeatInfo</span> <span class="variable">existBeat</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line">    <span class="comment">//fix #1733</span></span><br><span class="line">    <span class="keyword">if</span> ((existBeat = dom2Beat.remove(key)) != <span class="literal">null</span>) &#123;</span><br><span class="line">        existBeat.setStopped(<span class="literal">true</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    dom2Beat.put(key, beatInfo);</span><br><span class="line">    <span class="comment">// 利用线程池，定期执行心跳任务，周期为 beatInfo.getPeriod()</span></span><br><span class="line">    executorService.schedule(<span class="keyword">new</span> <span class="title class_">BeatTask</span>(beatInfo), beatInfo.getPeriod(), TimeUnit.MILLISECONDS);</span><br><span class="line">    MetricsMonitor.getDom2BeatSizeMonitor().set(dom2Beat.size());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
 <p>心跳周期的默认值在<code>com.alibaba.nacos.api.common.Constants</code>类中：</p>
-<p><img src="/../../images/image-20210922213829632.png" alt="image-20210922213829632"></p>
+<p><img src="/../../images/image-20210922213829632.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922213829632.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922213829632"></p>
 <p>可以看到是5秒，默认5秒一次心跳。</p>
 <h3 id="3-1-3-BeatTask"><a href="#3-1-3-BeatTask" class="headerlink" title="3.1.3.BeatTask"></a>3.1.3.BeatTask</h3><p>心跳的任务封装在<code>BeatTask</code>这个类中，是一个Runnable，其run方法如下：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (beatInfo.isStopped()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 获取心跳周期</span></span><br><span class="line">    <span class="type">long</span> <span class="variable">nextTime</span> <span class="operator">=</span> beatInfo.getPeriod();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 发送心跳</span></span><br><span class="line">        <span class="type">JsonNode</span> <span class="variable">result</span> <span class="operator">=</span> serverProxy.sendBeat(beatInfo, BeatReactor.<span class="built_in">this</span>.lightBeatEnabled);</span><br><span class="line">        <span class="type">long</span> <span class="variable">interval</span> <span class="operator">=</span> result.get(<span class="string">&quot;clientBeatInterval&quot;</span>).asLong();</span><br><span class="line">        <span class="type">boolean</span> <span class="variable">lightBeatEnabled</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">if</span> (result.has(CommonParams.LIGHT_BEAT_ENABLED)) &#123;</span><br><span class="line">            lightBeatEnabled = result.get(CommonParams.LIGHT_BEAT_ENABLED).asBoolean();</span><br><span class="line">        &#125;</span><br><span class="line">        BeatReactor.<span class="built_in">this</span>.lightBeatEnabled = lightBeatEnabled;</span><br><span class="line">        <span class="keyword">if</span> (interval &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            nextTime = interval;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="comment">// 判断心跳结果</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">code</span> <span class="operator">=</span> NamingResponseCode.OK;</span><br><span class="line">        <span class="keyword">if</span> (result.has(CommonParams.CODE)) &#123;</span><br><span class="line">            code = result.get(CommonParams.CODE).asInt();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (code == NamingResponseCode.RESOURCE_NOT_FOUND) &#123;</span><br><span class="line">            <span class="comment">// 如果失败，则需要 重新注册实例</span></span><br><span class="line">            <span class="type">Instance</span> <span class="variable">instance</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Instance</span>();</span><br><span class="line">            instance.setPort(beatInfo.getPort());</span><br><span class="line">            instance.setIp(beatInfo.getIp());</span><br><span class="line">            instance.setWeight(beatInfo.getWeight());</span><br><span class="line">            instance.setMetadata(beatInfo.getMetadata());</span><br><span class="line">            instance.setClusterName(beatInfo.getCluster());</span><br><span class="line">            instance.setServiceName(beatInfo.getServiceName());</span><br><span class="line">            instance.setInstanceId(instance.getInstanceId());</span><br><span class="line">            instance.setEphemeral(<span class="literal">true</span>);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                serverProxy.registerService(beatInfo.getServiceName(),</span><br><span class="line">                                            NamingUtils.getGroupName(beatInfo.getServiceName()), instance);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception ignore) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (NacosException ex) &#123;</span><br><span class="line">        NAMING_LOGGER.error(<span class="string">&quot;[CLIENT-BEAT] failed to send beat: &#123;&#125;, code: &#123;&#125;, msg: &#123;&#125;&quot;</span>,</span><br><span class="line">                            JacksonUtils.toJson(beatInfo), ex.getErrCode(), ex.getErrMsg());</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception unknownEx) &#123;</span><br><span class="line">        NAMING_LOGGER.error(<span class="string">&quot;[CLIENT-BEAT] failed to send beat: &#123;&#125;, unknown exception msg: &#123;&#125;&quot;</span>,</span><br><span class="line">                            JacksonUtils.toJson(beatInfo), unknownEx.getMessage(), unknownEx);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        executorService.schedule(<span class="keyword">new</span> <span class="title class_">BeatTask</span>(beatInfo), nextTime, TimeUnit.MILLISECONDS);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -718,7 +1027,7 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">init</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="comment">// 开启心跳检测的任务</span></span><br><span class="line">    HealthCheckReactor.scheduleCheck(clientBeatCheckTask);</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;String, Cluster&gt; entry : clusterMap.entrySet()) &#123;</span><br><span class="line">        entry.getValue().setService(<span class="built_in">this</span>);</span><br><span class="line">        entry.getValue().init();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>其中HealthCheckReactor.scheduleCheck就是执行心跳检测的定时任务：</p>
-<p><img src="/../../images/image-20210922221022107.png" alt="image-20210922221022107"></p>
+<p><img src="/../../images/image-20210922221022107.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922221022107.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922221022107"></p>
 <p>可以看到，该任务是5000ms执行一次，也就是5秒对实例的心跳状态做一次检测。</p>
 <p>此处的ClientBeatCheckTask同样是一个Runnable，其中的run方法为：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 找到所有临时实例的列表</span></span><br><span class="line">        List&lt;Instance&gt; instances = service.allIPs(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// first set health status of instances:</span></span><br><span class="line">        <span class="keyword">for</span> (Instance instance : instances) &#123;</span><br><span class="line">            <span class="comment">// 判断 心跳间隔（当前时间 - 最后一次心跳时间） 是否大于 心跳超时时间，默认15秒</span></span><br><span class="line">            <span class="keyword">if</span> (System.currentTimeMillis() - instance.getLastBeat() &gt; instance.getInstanceHeartBeatTimeOut()) &#123;</span><br><span class="line">                <span class="keyword">if</span> (!instance.isMarked()) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (instance.isHealthy()) &#123;</span><br><span class="line">                        <span class="comment">// 如果超时，标记实例为不健康 healthy = false</span></span><br><span class="line">                        instance.setHealthy(<span class="literal">false</span>);</span><br><span class="line"> </span><br><span class="line">                        <span class="comment">// 发布实例状态变更的事件</span></span><br><span class="line">                        getPushService().serviceChanged(service);</span><br><span class="line">                        ApplicationUtils.publishEvent(<span class="keyword">new</span> <span class="title class_">InstanceHeartbeatTimeoutEvent</span>(<span class="built_in">this</span>, instance));</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!getGlobalConfig().isExpireInstance()) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// then remove obsolete instances:</span></span><br><span class="line">        <span class="keyword">for</span> (Instance instance : instances) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (instance.isMarked()) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">           <span class="comment">// 判断心跳间隔（当前时间 - 最后一次心跳时间）是否大于 实例被删除的最长超时时间，默认30秒</span></span><br><span class="line">            <span class="keyword">if</span> (System.currentTimeMillis() - instance.getLastBeat() &gt; instance.getIpDeleteTimeout()) &#123;</span><br><span class="line">                <span class="comment">// 如果是超过了30秒，则删除实例</span></span><br><span class="line">                Loggers.SRV_LOG.info(<span class="string">&quot;[AUTO-DELETE-IP] service: &#123;&#125;, ip: &#123;&#125;&quot;</span>, service.getName(),</span><br><span class="line">                                     JacksonUtils.toJson(instance));</span><br><span class="line">                deleteIp(instance);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        Loggers.SRV_LOG.warn(<span class="string">&quot;Exception while processing client beat time out.&quot;</span>, e);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -726,10 +1035,10 @@
 
 
 <p>其中的超时时间同样是在<code>com.alibaba.nacos.api.common.Constants</code>这个类中：</p>
-<p><img src="/../../images/image-20210922221344417.png" alt="image-20210922221344417"></p>
+<p><img src="/../../images/image-20210922221344417.png" class="lazyload placeholder" data-srcset="/../../images/image-20210922221344417.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210922221344417"></p>
 <h3 id="3-3-4-主动健康检测"><a href="#3-3-4-主动健康检测" class="headerlink" title="3.3.4.主动健康检测"></a>3.3.4.主动健康检测</h3><p>对于非临时实例（ephemeral&#x3D;false)，Nacos会采用主动的健康检测，定时向实例发送请求，根据响应来判断实例健康状态。</p>
 <p>入口在2.3.2小节的<code>ServiceManager</code>类中的registerInstance方法：</p>
-<p><img src="/../../images/image-20210923100740065.png" alt="image-20210923100740065"></p>
+<p><img src="/../../images/image-20210923100740065.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923100740065.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923100740065"></p>
 <p>创建空服务时：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">createEmptyService</span><span class="params">(String namespaceId, String serviceName, <span class="type">boolean</span> local)</span> <span class="keyword">throws</span> NacosException &#123;</span><br><span class="line">    <span class="comment">// 如果服务不存在，创建新的服务</span></span><br><span class="line">    createServiceIfAbsent(namespaceId, serviceName, local, <span class="literal">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -751,7 +1060,7 @@
 
 
 <p>健康检测逻辑定义在<code>healthCheckProcessor.process(this);</code>方法中，在HealthCheckProcessor接口中，这个接口也有很多实现，默认是<code>TcpSuperSenseProcessor</code>：</p>
-<p><img src="/../../images/image-20210923102824451.png" alt="image-20210923102824451"></p>
+<p><img src="/../../images/image-20210923102824451.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923102824451.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923102824451"></p>
 <p>进入<code>TcpSuperSenseProcessor</code>的process方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">process</span><span class="params">(HealthCheckTask task)</span> &#123;</span><br><span class="line">    <span class="comment">// 获取所有 非临时实例的 集合</span></span><br><span class="line">    List&lt;Instance&gt; ips = task.getCluster().allIPs(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (CollectionUtils.isEmpty(ips)) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (Instance ip : ips) &#123;</span><br><span class="line">		<span class="comment">// 封装健康检测信息到 Beat</span></span><br><span class="line">        <span class="type">Beat</span> <span class="variable">beat</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Beat</span>(ip, task);</span><br><span class="line">        <span class="comment">// 放入一个阻塞队列中</span></span><br><span class="line">        taskQueue.add(beat);</span><br><span class="line">        MetricsMonitor.getTcpHealthCheckMonitor().incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -869,7 +1178,7 @@
 </tr>
 </tbody></table>
 <h2 id="4-1-客户端"><a href="#4-1-客户端" class="headerlink" title="4.1.客户端"></a>4.1.客户端</h2><h3 id="4-1-1-定时更新服务列表"><a href="#4-1-1-定时更新服务列表" class="headerlink" title="4.1.1.定时更新服务列表"></a>4.1.1.定时更新服务列表</h3><h4 id="4-1-1-1-NacosNamingService"><a href="#4-1-1-1-NacosNamingService" class="headerlink" title="4.1.1.1.NacosNamingService"></a>4.1.1.1.NacosNamingService</h4><p>在2.2.4小节中，我们讲到一个类<code>NacosNamingService</code>，这个类不仅仅提供了服务注册功能，同样提供了服务发现的功能。</p>
-<p><img src="/../../images/image-20210923153419392.png" alt="image-20210923153419392"></p>
+<p><img src="/../../images/image-20210923153419392.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923153419392.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923153419392"></p>
 <p>多个重载的方法最终都会进入一个方法：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> List&lt;Instance&gt; <span class="title function_">getAllInstances</span><span class="params">(String serviceName, String groupName, List&lt;String&gt; clusters,</span></span><br><span class="line"><span class="params">                                      <span class="type">boolean</span> subscribe)</span> <span class="keyword">throws</span> NacosException &#123;</span><br><span class="line"></span><br><span class="line">    ServiceInfo serviceInfo;</span><br><span class="line">    <span class="comment">// 1.判断是否需要订阅服务信息（默认为 true）</span></span><br><span class="line">    <span class="keyword">if</span> (subscribe) &#123;</span><br><span class="line">        <span class="comment">// 1.1.订阅服务信息</span></span><br><span class="line">        serviceInfo = hostReactor.getServiceInfo(NamingUtils.getGroupedName(serviceName, groupName),</span><br><span class="line">                                                 StringUtils.join(clusters, <span class="string">&quot;,&quot;</span>));</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 1.2.直接去nacos拉取服务信息</span></span><br><span class="line">        serviceInfo = hostReactor</span><br><span class="line">            .getServiceInfoDirectlyFromServer(NamingUtils.getGroupedName(serviceName, groupName),</span><br><span class="line">                                              StringUtils.join(clusters, <span class="string">&quot;,&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 2.从服务信息中获取实例列表并返回</span></span><br><span class="line">    List&lt;Instance&gt; list;</span><br><span class="line">    <span class="keyword">if</span> (serviceInfo == <span class="literal">null</span> || CollectionUtils.isEmpty(list = serviceInfo.getHosts())) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;Instance&gt;();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> list;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -883,15 +1192,15 @@
 <p>基本逻辑就是先从本地缓存读，根据结果来选择：</p>
 <ul>
 <li><p>如果本地缓存没有，立即去nacos读取，<code>updateServiceNow(serviceName, clusters)</code></p>
-<p><img src="/../../images/image-20210923161528710.png" alt="image-20210923161528710"></p>
+<p><img src="/../../images/image-20210923161528710.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923161528710.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923161528710"></p>
 </li>
 <li><p>如果本地缓存有，则开启定时更新功能，并返回缓存结果：</p>
 <ul>
 <li><code>scheduleUpdateIfAbsent(serviceName, clusters)</code></li>
 </ul>
-<p><img src="/../../images/image-20210923161630575.png" alt="image-20210923161630575"></p>
+<p><img src="/../../images/image-20210923161630575.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923161630575.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923161630575"></p>
 <p>在UpdateTask中，最终还是调用updateService方法：</p>
-<p><img src="/../../images/image-20210923161752521.png" alt="image-20210923161752521"></p>
+<p><img src="/../../images/image-20210923161752521.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923161752521.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923161752521"></p>
 </li>
 </ul>
 <p>不管是立即更新服务列表，还是定时更新服务列表，最终都会执行HostReactor中的updateService()方法：</p>
@@ -904,7 +1213,7 @@
 
 <h3 id="4-1-2-处理服务变更通知"><a href="#4-1-2-处理服务变更通知" class="headerlink" title="4.1.2.处理服务变更通知"></a>4.1.2.处理服务变更通知</h3><p>除了定时更新服务列表的功能外，Nacos还支持服务列表变更时的主动推送功能。</p>
 <p>在HostReactor类的构造函数中，有非常重要的几个步骤：</p>
-<p><img src="/../../images/image-20210923164145915.png" alt="image-20210923164145915"></p>
+<p><img src="/../../images/image-20210923164145915.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923164145915.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923164145915"></p>
 <p>基本思路是：</p>
 <ul>
 <li>通过PushReceiver监听服务端推送的变更数据</li>
@@ -948,404 +1257,1082 @@
 
 <p>其实是把消费者的UDP端口、IP等信息封装为一个PushClient对象，存储PushService中。方便以后服务变更后推送消息。</p>
 <p>PushService类本身实现了<code>ApplicationListener</code>接口：</p>
-<p><img src="/../../images/image-20210923182429636.png" alt="image-20210923182429636"></p>
+<p><img src="/../../images/image-20210923182429636.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923182429636.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923182429636"></p>
 <p>这个是事件监听器接口，监听的是ServiceChangeEvent（服务变更事件）。</p>
 <p>当服务列表变化时，就会通知我们：</p>
-<p><img src="/../../images/image-20210923183017424.png" alt="image-20210923183017424"></p>
+<p><img src="/../../images/image-20210923183017424.png" class="lazyload placeholder" data-srcset="/../../images/image-20210923183017424.png" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="image-20210923183017424"></p>
 <h2 id="4-3-总结"><a href="#4-3-总结" class="headerlink" title="4.3.总结"></a>4.3.总结</h2><p>Nacos的服务发现分为两种模式：</p>
 <ul>
 <li>模式一：主动拉取模式，消费者定期主动从Nacos拉取服务列表并缓存起来，再服务调用时优先读取本地缓存中的服务列表。</li>
 <li>模式二：订阅模式，消费者订阅Nacos中的服务列表，并基于UDP协议来接收服务变更通知。当Nacos中的服务列表更新时，会发送UDP广播给所有订阅者。</li>
 </ul>
 <p>与Eureka相比，Nacos的订阅模式服务状态更新更及时，消费者更容易及时发现服务列表的变化，剔除故障服务。</p>
-  
-	</div>
-		<footer class="article-footer clearfix">
-<div class="article-catetags">
 
-<div class="article-categories">
-  <span></span>
-  <a class="article-category-link" href="/categories/springcloud/">springcloud</a>
-</div>
-
-
-  <div class="article-tags">
-  
-  <span></span> <a href="/tags/nacos/">nacos</a>
-  </div>
-
-</div>
-
-
-
-	<div class="article-share" id="share">
-	
-	  <div data-url="http://blog.b6123.top/2022/03/22/nacosym/" data-title="Nacos源码分析 | JsonLu的个人博客网站" data-tsina="" class="share clearfix">
-	  </div>
-	
-	</div>
-
-
-</footer>
-
-   	       
-	</article>
-	
-<nav class="article-nav clearfix">
- 
-
-<div class="next">
-<a href="/2022/03/22/sentinel/"  title="Sentinel源码分析">
- <strong>下一篇：</strong><br/> 
- <span>Sentinel源码分析
-</span>
-</a>
-</div>
-
-</nav>
-
-	
-
-
-
-</div>  
-      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
-
-  <div id="toc" class="toc-aside">
-  <strong class="toc-title">文章目录</strong>
- 
- <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#1-%E4%B8%8B%E8%BD%BDNacos%E6%BA%90%E7%A0%81%E5%B9%B6%E8%BF%90%E8%A1%8C"><span class="toc-number">1.</span> <span class="toc-text">1.下载Nacos源码并运行</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E4%B8%8B%E8%BD%BDNacos%E6%BA%90%E7%A0%81"><span class="toc-number">1.1.</span> <span class="toc-text">1.1.下载Nacos源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E5%AF%BC%E5%85%A5Demo%E5%B7%A5%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">1.2.导入Demo工程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E5%AF%BC%E5%85%A5Nacos%E6%BA%90%E7%A0%81"><span class="toc-number">1.3.</span> <span class="toc-text">1.3.导入Nacos源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-proto%E7%BC%96%E8%AF%91"><span class="toc-number">1.4.</span> <span class="toc-text">1.4.proto编译</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-1-%E4%BB%80%E4%B9%88%E6%98%AFprotobuf"><span class="toc-number">1.4.1.</span> <span class="toc-text">1.4.1.什么是protobuf</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-2-%E5%AE%89%E8%A3%85protoc"><span class="toc-number">1.4.2.</span> <span class="toc-text">1.4.2.安装protoc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-4-3-%E7%BC%96%E8%AF%91proto"><span class="toc-number">1.4.3.</span> <span class="toc-text">1.4.3.编译proto</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-%E8%BF%90%E8%A1%8C"><span class="toc-number">1.5.</span> <span class="toc-text">1.5.运行</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#2-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C"><span class="toc-number">2.</span> <span class="toc-text">2.服务注册</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E6%9C%8D%E5%8A%A1%E6%B3%A8%E5%86%8C%E6%8E%A5%E5%8F%A3"><span class="toc-number">2.1.</span> <span class="toc-text">2.1.服务注册接口</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">2.2.</span> <span class="toc-text">2.2.客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-NacosServiceRegistryAutoConfiguration"><span class="toc-number">2.2.1.</span> <span class="toc-text">2.2.1.NacosServiceRegistryAutoConfiguration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-NacosAutoServiceRegistration"><span class="toc-number">2.2.2.</span> <span class="toc-text">2.2.2.NacosAutoServiceRegistration</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-NacosServiceRegistry"><span class="toc-number">2.2.3.</span> <span class="toc-text">2.2.3.NacosServiceRegistry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4-NacosNamingService"><span class="toc-number">2.2.4.</span> <span class="toc-text">2.2.4.NacosNamingService</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5-%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B3%A8%E5%86%8C%E7%9A%84%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">2.2.5.</span> <span class="toc-text">2.2.5.客户端注册的流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">2.3.</span> <span class="toc-text">2.3.服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-1-InstanceController"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.3.1.InstanceController</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-2-ServiceManager"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.3.2.ServiceManager</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1%EF%BC%89%E6%9B%B4%E6%9C%8D%E5%8A%A1%E5%88%97%E8%A1%A8"><span class="toc-number">2.3.2.1.</span> <span class="toc-text">1）更服务列表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2%EF%BC%89Nacos%E9%9B%86%E7%BE%A4%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.3.2.2.</span> <span class="toc-text">2）Nacos集群一致性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-4-DistroConsistencyServiceImpl"><span class="toc-number">2.3.3.</span> <span class="toc-text">2.3.4.DistroConsistencyServiceImpl</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-4-1-%E6%9B%B4%E6%96%B0%E6%9C%AC%E5%9C%B0%E5%AE%9E%E4%BE%8B%E5%88%97%E8%A1%A8"><span class="toc-number">2.3.3.1.</span> <span class="toc-text">2.3.4.1.更新本地实例列表</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1%EF%BC%89%E6%94%BE%E5%85%A5%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97"><span class="toc-number">2.3.3.1.1.</span> <span class="toc-text">1）放入阻塞队列</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2%EF%BC%89Notifier%E5%BC%82%E6%AD%A5%E6%9B%B4%E6%96%B0"><span class="toc-number">2.3.3.1.2.</span> <span class="toc-text">2）Notifier异步更新</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3%EF%BC%89%E8%A6%86%E7%9B%96%E5%AE%9E%E4%BE%8B%E5%88%97%E8%A1%A8"><span class="toc-number">2.3.3.1.3.</span> <span class="toc-text">3）覆盖实例列表</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-4-2-%E9%9B%86%E7%BE%A4%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5"><span class="toc-number">2.3.3.2.</span> <span class="toc-text">2.3.4.2.集群数据同步</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-5-%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="toc-number">2.3.4.</span> <span class="toc-text">2.3.5.服务端流程图</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-4-%E6%80%BB%E7%BB%93"><span class="toc-number">2.4.</span> <span class="toc-text">2.4.总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#3-%E6%9C%8D%E5%8A%A1%E5%BF%83%E8%B7%B3"><span class="toc-number">3.</span> <span class="toc-text">3.服务心跳</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">3.1.</span> <span class="toc-text">3.1.客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-1-BeatInfo"><span class="toc-number">3.1.1.</span> <span class="toc-text">3.1.1.BeatInfo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-2-BeatReactor"><span class="toc-number">3.1.2.</span> <span class="toc-text">3.1.2.BeatReactor</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-3-BeatTask"><span class="toc-number">3.1.3.</span> <span class="toc-text">3.1.3.BeatTask</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-5-%E5%8F%91%E9%80%81%E5%BF%83%E8%B7%B3"><span class="toc-number">3.1.4.</span> <span class="toc-text">3.1.5.发送心跳</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">3.2.</span> <span class="toc-text">3.2.服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-1-InstanceController"><span class="toc-number">3.2.1.</span> <span class="toc-text">3.2.1.InstanceController</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-2-%E5%A4%84%E7%90%86%E5%BF%83%E8%B7%B3%E8%AF%B7%E6%B1%82"><span class="toc-number">3.2.2.</span> <span class="toc-text">3.2.2.处理心跳请求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-3-%E5%BF%83%E8%B7%B3%E5%BC%82%E5%B8%B8%E6%A3%80%E6%B5%8B"><span class="toc-number">3.2.3.</span> <span class="toc-text">3.3.3.心跳异常检测</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-4-%E4%B8%BB%E5%8A%A8%E5%81%A5%E5%BA%B7%E6%A3%80%E6%B5%8B"><span class="toc-number">3.2.4.</span> <span class="toc-text">3.3.4.主动健康检测</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-%E6%80%BB%E7%BB%93"><span class="toc-number">3.3.</span> <span class="toc-text">3.3.总结</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-%E6%9C%8D%E5%8A%A1%E5%8F%91%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">4.服务发现</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-%E5%AE%A2%E6%88%B7%E7%AB%AF"><span class="toc-number">4.1.</span> <span class="toc-text">4.1.客户端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-1-%E5%AE%9A%E6%97%B6%E6%9B%B4%E6%96%B0%E6%9C%8D%E5%8A%A1%E5%88%97%E8%A1%A8"><span class="toc-number">4.1.1.</span> <span class="toc-text">4.1.1.定时更新服务列表</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-1-NacosNamingService"><span class="toc-number">4.1.1.1.</span> <span class="toc-text">4.1.1.1.NacosNamingService</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-2-HostReactor"><span class="toc-number">4.1.1.2.</span> <span class="toc-text">4.1.1.2.HostReactor</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-1-3-ServerProxy"><span class="toc-number">4.1.1.3.</span> <span class="toc-text">4.1.1.3.ServerProxy</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-2-%E5%A4%84%E7%90%86%E6%9C%8D%E5%8A%A1%E5%8F%98%E6%9B%B4%E9%80%9A%E7%9F%A5"><span class="toc-number">4.1.2.</span> <span class="toc-text">4.1.2.处理服务变更通知</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-1-PushReceiver"><span class="toc-number">4.1.2.1.</span> <span class="toc-text">4.1.2.1.PushReceiver</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-2-2-HostReactor"><span class="toc-number">4.1.2.2.</span> <span class="toc-text">4.1.2.2.HostReactor</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="toc-number">4.2.</span> <span class="toc-text">4.2.服务端</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-1-%E6%8B%89%E5%8F%96%E6%9C%8D%E5%8A%A1%E5%88%97%E8%A1%A8%E6%8E%A5%E5%8F%A3"><span class="toc-number">4.2.1.</span> <span class="toc-text">4.2.1.拉取服务列表接口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-2-%E5%8F%91%E5%B8%83%E6%9C%8D%E5%8A%A1%E5%8F%98%E6%9B%B4%E7%9A%84UDP%E9%80%9A%E7%9F%A5"><span class="toc-number">4.2.2.</span> <span class="toc-text">4.2.2.发布服务变更的UDP通知</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-%E6%80%BB%E7%BB%93"><span class="toc-number">4.3.</span> <span class="toc-text">4.3.总结</span></a></li></ol></li></ol>
- 
-  </div>
-
-<div id="asidepart">
-<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
-<aside class="clearfix">
-
-  
-<div class="github-card">
-<p class="asidetitle">Github 名片</p>
-<div class="github-card" data-github="JsonandSesson" data-theme="medium"></div>
-<script type="text/javascript" src="//cdn.jsdelivr.net/github-cards/latest/widget.js" ></script>
-</div>
-
-
-
-  
-<div class="categorieslist">
-	<p class="asidetitle">分类</p>
-		<ul>
-		
-		  
-			<li><a href="/categories/spring/" title="spring">spring<sup>1</sup></a></li>
-		  
-		
-		  
-			<li><a href="/categories/springcloud/" title="springcloud">springcloud<sup>1</sup></a></li>
-		  
-		
-		  
-			<li><a href="/categories/vue/" title="vue">vue<sup>1</sup></a></li>
-		  
-		
-		</ul>
-</div>
-
-
-  
-<div class="tagslist">
-	<p class="asidetitle">标签</p>
-		<ul class="clearfix">
-		
-			
-				<li><a href="/tags/vue/" title="vue">vue<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/springcloud/" title="springcloud">springcloud<sup>1</sup></a></li>
-			
-		
-			
-				<li><a href="/tags/nacos/" title="nacos">nacos<sup>1</sup></a></li>
-			
-		
-		</ul>
-</div>
-
-
-  <div class="linkslist">
-  <p class="asidetitle">友情链接</p>
-    <ul>
+      </div>
+      <div class="post-tags-categories">
         
-          <li>
-            
-            	<a href="https://coderq.com" target="_blank" title="一个面向程序员交流分享的新一代社区">码农圈</a>
-            
-          </li>
+        <div class="tags">
+          
+            <a href="/tags/nacos/" class="">
+              nacos
+            </a>
+          
+        </div>
         
-          <li>
-            
-            	<a href="http://wuchong.me" target="_blank" title="Jark&#39;s Blog">Jark&#39;s Blog</a>
-            
-          </li>
-        
-    </ul>
-</div>
-
-  
-
-
-  <div class="rsspart">
-	<a href="/atom.xml" target="_blank" title="rss">RSS 订阅</a>
-</div>
-
-  <div class="weiboshow">
-  <p class="asidetitle">新浪微博</p>
-    <iframe width="100%" height="119" class="share_self"  frameborder="0" scrolling="no" src="http://widget.weibo.com/weiboshow/index.php?language=&width=0&height=119&fansRow=2&ptype=1&speed=0&skin=9&isTitle=1&noborder=1&isWeibo=0&isFans=0&uid=&verifier=&dpc=1"></iframe>
-</div>
-
-
-</aside>
-</div>
-    </div>
-    <footer><div id="footer" >
-	
-	<div class="line">
-		<span></span>
-		<div class="author"></div>
-	</div>
-	
-	
-	<section class="info">
-		<p> Hello ,I&#39;m JsonandSesson in github. <br/>
-			This is my blog,believe it or not.</p>
-	</section>
-	 
-	<div class="social-font" class="clearfix">
-		
-		
-		<a href="https://github.com/JsonandSesson" target="_blank" class="icon-github" title="github"></a>
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		<a href="mailto:15155519063@163.com" target="_blank" class="icon-email" title="Email Me"></a>
-		
-	</div>
-			
-		
-
-		<p class="copyright">
-		Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a> and Theme by <a href="https://github.com/wuchong/jacman" target="_blank" title="Jacman">Jacman</a> © 2022 
-		
-		<a href="/about" target="_blank" title="JL">JL</a>
-		
-		
-		</p>
-</div>
-</footer>
-    <script src="/js/jquery-2.0.3.min.js"></script>
-<script src="/js/jquery.imagesloaded.min.js"></script>
-<script src="/js/gallery.js"></script>
-<script src="/js/jquery.qrcode-0.12.0.min.js"></script>
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  $('.navbar').click(function(){
-    $('header nav').toggleClass('shownav');
-  });
-  var myWidth = 0;
-  function getSize(){
-    if( typeof( window.innerWidth ) == 'number' ) {
-      myWidth = window.innerWidth;
-    } else if( document.documentElement && document.documentElement.clientWidth) {
-      myWidth = document.documentElement.clientWidth;
-    };
-  };
-  var m = $('#main'),
-      a = $('#asidepart'),
-      c = $('.closeaside'),
-      o = $('.openaside');
-  c.click(function(){
-    a.addClass('fadeOut').css('display', 'none');
-    o.css('display', 'block').addClass('fadeIn');
-    m.addClass('moveMain');
-  });
-  o.click(function(){
-    o.css('display', 'none').removeClass('beforeFadeIn');
-    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
-    m.removeClass('moveMain');
-  });
-  $(window).scroll(function(){
-    o.css("top",Math.max(80,260-$(this).scrollTop()));
-  });
-  
-  $(window).resize(function(){
-    getSize(); 
-    if (myWidth >= 1024) {
-      $('header nav').removeClass('shownav');
-    }else{
-      m.removeClass('moveMain');
-      a.css('display', 'block').removeClass('fadeOut');
-      o.css('display', 'none');
+      </div>
       
-      $('#toc.toc-aside').css('display', 'none');
-        
-    }
-  });
-});
+        <div class="copyright">
+  <ul class="post-copyright">
+    <li class="post-copyright-author">
+    <strong>作者:  </strong>JL</a>
+    </li>
+    <li class="post-copyright-link">
+    <strong>文章链接:  </strong>
+    <a href="/2022/03/22/nacosym/" target="_blank" title="Nacos源码分析">http://blog.b6123.top/2022/03/22/nacosym/</a>
+    </li>
+    <li class="post-copyright-license">
+      <strong>版权声明:   </strong>
+      本网站所有文章除特别声明外,均采用 <a rel="license" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank" title="Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)">CC BY-NC-ND 4.0</a>
+      许可协议。转载请注明出处!
+    </li>
+  </ul>
+<div>
+      
+    </article>
+    <!-- 上一篇文章和下一篇文章 -->
+    
+      <!-- 文章详情页的上一页和下一页 -->
+<div class="post-nav">
+
+
+
+
+
+  
+  <div class="post-nav-next post-nav-item">
+    <div class="post-nav-img" style="background-size: cover; 
+      background-position: center center;">
+      <img class="lazyload lazyload placeholder" src="/medias/10.jpg" class="lazyload placeholder" data-srcset="/medias/10.jpg" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" src="" alt="">
+    </div>
+    <a href="/2022/03/22/sentinel/" class="post-nav-link">
+      <div class="title">
+        下一篇: <i class="fas fa-angle-right"></i>
+        <div class="title-text">Sentinel源码分析</div>
+      </div>
+      <!-- <div class="content">
+        1.Sentinel的基本概念Sentinel实现限流、隔离、降级、熔断等功能，本质要做的就是两件事情：
+
+统计数据：统
+      </div> -->
+    </a>
+  </div>
+
+</div>
+
+    
+    
+
+    <!-- 打赏 -->
+    
+      <div id="appDonate" class="post-donate">
+  <div id="donate_board" class="donate_bar center" ref="donate">
+    <a id="btn_donate" class="btn_donate" href="javascript:;" title="打赏" @click="showDialogDrawer()"></a>
+  </div>
+  <transition name="fade">
+    <div 
+      class="donate-box-mask"
+      v-cloak 
+      v-show="visible"
+      @click="cancelDialogDrawer()"
+    >
+    </div>
+  </transition>
+  <transition name="bounce">
+    <div class="donate-box" v-cloak v-show="visible">
+      <div class="donate-box_close">
+        <i class="fas fa-times" aria-hidden="true" @click="cancelDialogDrawer" pointer></i>
+      </div>
+      <div class="donate-box_title">
+        <h4>
+          你的赏识是我前进的动力
+        </h4>
+      </div>
+      <div class="donate-box_tab">
+        <div class="Alipay" pointer :class="{'active': tabActive === 'Alipay'}" @click="changeTabActive('Alipay')">
+          支付宝
+        </div>
+        <div class="WeChatpay" pointer :class="{'active': tabActive === 'WeChatpay'}" @click="changeTabActive('WeChatpay')">
+          微信
+        </div>
+      </div>
+      <div class="donate-box_img">
+        <div class="AlipayImg" v-show="tabActive === 'Alipay'">
+          <img src="/medias/zfb.jpg" class="lazyload placeholder" data-srcset="/medias/zfb.jpg" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="支付宝打赏" />
+        </div> 
+        <div class="WeChatpayImg" v-show="tabActive === 'WeChatpay'">
+          <img src="/medias/wx.jpg" class="lazyload placeholder" data-srcset="/medias/wx.jpg" srcset="https://img2.baidu.com/it/u=2037979560,2772131037&fm=26&fmt=auto&gp=0.jpg" alt="微信打赏" />
+        </div>
+      </div>
+    </div>
+  </transition>
+</div>
+
+<script>
+  var body = document.body || document.documentElement || window;
+  var vm = new Vue({
+    el: '#appDonate',
+    data: {
+      visible: false,
+      tabActive: 'Alipay',
+      top: 0,
+    },
+    computed: {
+    },
+    mounted() {
+    },
+    methods: {
+      showDialogDrawer() {
+        this.visible = true;
+        // 防止页面滚动，只能让弹框滚动
+        // function getScroll() {
+        //   return {
+        //     left: window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft || 0,
+        //     top: window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0
+        //   };
+        // }
+        this.top = $(document).scrollTop() // or getScroll().top
+        // console.log('aa', $('.main-content'));
+        body.style.cssText = 'overflow: hidden;';
+      },
+      cancelDialogDrawer() {
+        this.visible = false;
+        body.removeAttribute('style');
+        $(document).scrollTop(this.top)
+      },
+      changeTabActive(name) {
+        this.tabActive = name;
+      }
+    },
+    created() {}
+  })
+</script>
+    
+
+    <!-- 分享 -->
+    
+      <!-- https://github.com/overtrue/share.js -->
+<!-- 文章详情页的分享 -->
+<div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+
+<script src="/js/shareJs/social-share.min.js"></script>
 </script>
 
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var ai = $('.article-content>iframe'),
-      ae = $('.article-content>embed'),
-      t  = $('#toc'),
-      ta = $('#toc.toc-aside'),
-      o  = $('.openaside'),
-      c  = $('.closeaside');
-  if(ai.length>0){
-    ai.wrap('<div class="video-container" />');
-  };
-  if(ae.length>0){
-   ae.wrap('<div class="video-container" />');
-  };
-  c.click(function(){
-    ta.css('display', 'block').addClass('fadeIn');
-  });
-  o.click(function(){
-    ta.css('display', 'none');
-  });
-  $(window).scroll(function(){
-    ta.css("top",Math.max(140,320-$(this).scrollTop()));
-  });
-});
-</script>
-
-
-<script type="text/javascript">
-$(document).ready(function(){ 
-  var $this = $('.share'),
-      url = $this.attr('data-url'),
-      encodedUrl = encodeURIComponent(url),
-      title = $this.attr('data-title'),
-      tsina = $this.attr('data-tsina'),
-      description = $this.attr('description');
-  var html = [
-  '<div class="hoverqrcode clearfix"></div>',
-  '<a class="overlay" id="qrcode"></a>',
-  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
-  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
-  '<a href="#qrcode" class="article-share-qrcode" title="微信"></a>',
-  '<a href="http://widget.renren.com/dialog/share?resourceUrl=' + encodedUrl + '&srcUrl=' + encodedUrl + '&title=' + title +'" class="article-share-renren" target="_blank" title="人人"></a>',
-  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="微博"></a>',
-  '<span title="Share to"></span>'
-  ].join('');
-  $this.append(html);
-
-  $('.hoverqrcode').hide();
-
-  var myWidth = 0;
-  function updatehoverqrcode(){
-    if( typeof( window.innerWidth ) == 'number' ) {
-      myWidth = window.innerWidth;
-    } else if( document.documentElement && document.documentElement.clientWidth) {
-      myWidth = document.documentElement.clientWidth;
-    };
-    var qrsize = myWidth > 1024 ? 200:100;
-    var options = {render: 'image', size: qrsize, fill: '#2ca6cb', text: url, radius: 0.5, quiet: 1};
-    var p = $('.article-share-qrcode').position();
-    $('.hoverqrcode').empty().css('width', qrsize).css('height', qrsize)
-                          .css('left', p.left-qrsize/2+20).css('top', p.top-qrsize-10)
-                          .qrcode(options);
-  };
-  $(window).resize(function(){
-    $('.hoverqrcode').hide();
-  });
-  $('.article-share-qrcode').click(function(){
-    updatehoverqrcode();
-    $('.hoverqrcode').toggle();
-  });
-  $('.article-share-qrcode').hover(function(){}, function(){
-      $('.hoverqrcode').hide();
-  });
-});   
-</script>
-
-
-
-
-
-
-
-
-
-
-
-<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
-<script src="/fancybox/jquery.fancybox.pack.js"></script>
-<script type="text/javascript">
-$(document).ready(function(){ 
-  $('.article-content').each(function(i){
-    $(this).find('img').each(function(){
-      if ($(this).parent().hasClass('fancybox')) return;
-      var alt = this.alt;
-      if (alt) $(this).after('<span class="caption">' + alt + '</span>');
-      $(this).wrap('<a href="' + this.src + '" title="' + alt + '" class="fancybox"></a>');
-    });
-    $(this).find('.fancybox').each(function(){
-      $(this).attr('rel', 'article' + i);
-    });
-  });
-  if($.fancybox){
-    $('.fancybox').fancybox();
+<style>
+  .social-share {
+    margin: 20px 0;
   }
-}); 
-</script>
+</style>
 
 
+    
+    
+    <!-- 评论 -->
+    <!-- 评论 -->
 
-<!-- Analytics Begin -->
+  <div id="myComment">
+    
+      <div id="gitment-container"></div>
 
+    
+  </div>
+
+<!-- comment script in themes\hexo-theme-bamboo\layout\_partial\scripts\index.ejs -->
+
+
+  </div>
+
+  <!-- 目录 -->
+  <!-- 文章详情页右侧目录 -->
+
+  <div class="toc-aside">
+    <div class="toc-main">
+      <div class="toc-aside-title">
+        <i class="fas fa-list-ul" aria-hidden="true"></i><span>本文目录</span>
+        
+          <div class="toc-open-close">本文目录</div>
+        
+      </div>
+      <div class="toc-content">
+        <div class="toc"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 手机端目录按钮 -->
+  <div id="toc-mobile-btn">
+    <i class="fas fa-list-ul" aria-hidden="true"></i>
+  </div>
 
 
 <script>
-var _hmt = _hmt || [];
-(function() {
-  var hm = document.createElement("script");
-  hm.src = "//hm.baidu.com/hm.js?e6d1f421bbc9962127a50488f9ed37d1";
-  var s = document.getElementsByTagName("script")[0]; 
-  s.parentNode.insertBefore(hm, s);
-})();
+  function closeToc(init) {
+    $(".toc-aside").css({'width': 0, 'padding': 0, 'transition': init ?  'noe' : 'width 0.3s' });
+    $(".toc-content").css({'width': 0});
+    $(".toc-aside-title span, .toc-aside-title i").css({'display': 'none'});
+    $(".main-content").css({'width': '75%', 'margin': '10px auto'});
+  };
+  function openToc() {
+    $(".main-content").css({'width': '65%', 'margin-right': '10px', 'margin-left': 'calc(35% - 350px)'});
+    $(".toc-aside").css({'width': '300px', 'padding': '0 10px', 'transition': 'width 0.3s'});
+    $(".toc-content").css({'width': '300px'});
+    $(".toc-aside-title span, .toc-aside-title i").css({'display': 'inline-block'});
+  }
+  function openBtnClickFn () {
+    let openOrCloseBtn = $('.toc-aside .toc-aside-title .toc-open-close');
+    let open = eval('' || 'true');
+    openOrCloseBtn.click(function() {
+      if (open) {
+        closeToc();
+        open = false;
+      } else {
+        openToc();
+        open = true;
+      }
+    });
+  };
+  openBtnClickFn();
+  initCloseTocWidth(true);
+
+  function initCloseTocWidth(init) {
+    if (window.innerWidth >= 992) {
+      let isClose = false;
+      isClose && closeToc(init)
+    }
+  }
+
+  document.addEventListener('pjax:complete', function () {
+    $(".toc-aside").css({'transition': 'no'});
+  })
+  document.addEventListener('pjax:complete', function () {
+    openBtnClickFn();
+  })
+  
+</script>
+
+  <!-- 图片放大 Wrap images with fancybox support -->
+  <script src="/js/wrapImage.js"></script>
+</div>
+
+<!-- 文章详情页背景图 -->
+<div id="appBgSwiper" style="position: fixed;left: 0;top: 0;width: 100%;height: 100%;z-index: -2;"
+	:style="{'background-color': bgColor ? bgColor : 'transparent'}">
+	<transition-group tag="ul" :name="names">
+		<li v-for='(image,index) in img' :key='index' v-show="index === mark" class="bg-swiper-box">
+			<img :src="image" class="bg-swiper-img no-lazy">
+		</li>
+	</transition-group>
+</div>
+<script>
+	var vm = new Vue({
+		el: '#appBgSwiper',
+		data: {
+			names: '' || 'fade' || 'fade', // translate-fade fade
+			mark: 0,
+			img: [],
+			bgColor: '',
+			time: null
+		},
+		methods: {   //添加方法
+			change(i, m) {
+				if (i > m) {
+					// this.names = 'fade';
+				} else if (i < m) {
+					// this.names = 'fade';
+				} else {
+					return;
+				}
+				this.mark = i;
+			},
+			prev() {
+				// this.names = 'fade';
+				this.mark--;
+				if (this.mark === -1) {
+					this.mark = 3;
+					return
+				}
+			},
+			next() {
+				// this.names = 'fade';
+				this.mark++;
+				if (this.mark === this.img.length) {
+					this.mark = 0;
+					return
+				}
+			},
+			autoPlay() {
+				// this.names = 'fade';
+				this.mark++;
+				if (this.mark === this.img.length) {
+					this.mark = 0;
+					return
+				}
+			},
+			play() {
+				let bgImgDelay = '' || '180000'
+				let delay = parseInt(bgImgDelay) || 180000;
+				this.time = setInterval(this.autoPlay, delay);
+			},
+			enter() {
+				clearInterval(this.time);
+			},
+			leave() {
+				this.play();
+			}
+		},
+		created() {
+			this.play()
+		},
+		beforeDestroy() {
+			clearInterval(this.time);
+		},
+		mounted() {
+			let prop = '' || '';
+			let isImg = prop.includes('.bmp') || prop.includes('.jpg') || prop.includes('.png') || prop.includes('.tif') || prop.includes('.gif') || prop.includes('.pcx') || prop.includes('.tga') || prop.includes('.exif') || prop.includes('.fpx') || prop.includes('.psd') || prop.includes('.cdr') || prop.includes('.pcd') || prop.includes('.dxf') || prop.includes('.ufo') || prop.includes('.eps') || prop.includes('.ai') || prop.includes('.raw') || prop.includes('.WMF') || prop.includes('.webp') || prop.includes('.jpeg') || prop.includes('http://') || prop.includes('https://')
+			if (isImg) {
+				let img = prop.split(',');
+				let configRoot = '/'
+				let arrImg = [];
+				img.forEach(el => {
+					var Expression = /http(s)?:\/\/([\w-]+\.)+[\w-]+(\/[\w- .\/?%&=]*)?/;
+					var objExp = new RegExp(Expression);
+
+					if (objExp.test(el)) {
+						// http or https
+						arrImg.push(el);
+					} else {
+						// 非http or https开头
+						// 本地文件
+						let firstStr = el.charAt(0);
+						if (firstStr == '/') {
+							el = el.substr(1); // 删除第一个字符 '/',因为 configRoot最后一个字符为 /
+						}
+						el = configRoot + el;
+						arrImg.push(el);
+					}
+				})
+				this.img = arrImg;
+			} else {
+				this.bgColor = prop;
+			}
+		}
+	})
+</script>
+
+<style>
+	.bg-swiper-box {
+		position: absolute;
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	.bg-swiper-img {
+		object-fit: cover;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+
+
+
+
+  <script>
+  function loadMermaid() {
+    if (document.getElementsByClassName('mermaid').length) {
+      if (window.mermaidJsLoad) mermaid.init()
+      else {
+        loadScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(() => {
+          window.mermaidJsLoad = true
+          mermaid.initialize({
+            theme: 'default',
+          })
+          if ('true') {
+            mermaid.init();
+          }
+        })
+      }
+    }
+  };
+  document.addEventListener("DOMContentLoaded", function () {
+    loadMermaid();
+  })
+
+  document.addEventListener('pjax:complete', function () {
+    loadMermaid();
+  })
+  
 </script>
 
 
+      </main>
+    </div>
 
-<!-- Analytics End -->
+    <!-- 页脚 -->
+    
+  
+  <div class="footer bg-color">
+    <div class="footer-main">
+      
+        
+          <div class="link">
+            
+          </div>
+        
+      
+        
+          <div class="footer-copyright">
+            <p>Copyright © 2019 - 2020 <a target="_blank" rel="noopener" href="https://github.com/yuang01">yuang01</a> | Powered by <a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/docs/">Hexo</a> | Theme <a target="_blank" rel="noopener" href="https://github.com/yuang01/theme">Bamboo</a> </p>
 
-<!-- Totop Begin -->
+          </div>
+        
+      
+        
+          
+            <!-- 不蒜子统计 -->
+            <!-- 不蒜子统计 -->
+<span id="busuanzi_container_site_pv">
+      <i class="fas fa-eye" aria-hidden="true"></i>本站总访问量：<span id="busuanzi_value_site_pv"></span> 次
+</span>
+<span class="post-meta-divider">|</span>
+<span id="busuanzi_container_site_uv" style='display:none'>
+      <i class="fas fa-users" aria-hidden="true"></i>本站访客数：<span id="busuanzi_value_site_uv"></span> 人
+</span>
 
-	<div id="totop">
-	<a title="返回顶部"><img src="/img/scrollup.png"/></a>
-	</div>
-	<script src="/js/totop.js"></script>
+          
+        
+      
+        
+          <div class="footer-custom">
+            
+          </div>
+        
+      
+    </div>
+  </div>
 
-<!-- Totop End -->
-
-<!-- MathJax Begin -->
-<!-- mathjax config similar to math.stackexchange -->
 
 
-<!-- MathJax End -->
+    <!-- 渲染暗黑按钮 -->
+    
+      <div class="dark">
+  <div class="dark-content">
+    <i class="fas fa-moon" aria-hidden="true"></i>
+    <!-- <span>关灯</span> -->
+  </div>
+  
+</div>
 
-<!-- Tiny_search Begin -->
+<script>
+  $(function() {
+    let isDark = JSON.parse(localStorage.getItem('dark'))  || JSON.parse('false');
+    if (isDark) {
+      $(".dark-content").replaceWith(
+          `
+          <div class='dark-content'>
+            <i class="fas fa-lightbulb" aria-hidden="true"></i>
+          </div>
+          `
+        );
+    }
+    $('.dark').click(function() {
+      if ($(document.body).is('.darkModel')) {
+        $(document.body).removeClass('darkModel');
+        localStorage.setItem('dark', false);
+        $(".dark-content").replaceWith(
+          `
+          <div class='dark-content'>
+            <i class="fas fa-moon" aria-hidden="true"></i>
+          </div>
+          `
+        );
+      } else {
+        $(document.body).addClass('darkModel');
+        localStorage.setItem('dark', true);
+        $(".dark-content").replaceWith(
+          `
+          <div class='dark-content'>
+            <i class="fas fa-lightbulb" aria-hidden="true"></i>
+          </div>
+          `
+        );
+      }
+    })
+  })
+</script>
+    
+    <!-- 渲染回到顶部按钮 -->
+    
+      <div class="goTop top-btn-color" pointer>
+  <i class="fas fa-arrow-up" aria-hidden="true"></i>
+</div>
+<script src="/js/goTop.js"></script>
 
-<!-- Tiny_search End -->
+    
+    <!-- 渲染左下角音乐播放器 -->
+    
+      <link rel="stylesheet" href="/js/aplayer/APlayer@1.10.1.min.css">
+<style>
+.aplayer .aplayer-lrc p {
+  
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px !important;
+}
+
+.aplayer .aplayer-lrc p.aplayer-lrc-current {
+  
+  font-size: 15px;
+  color: #42b983;
+}
+
+
+.aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+  left: -66px !important;
+}
+
+.aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+  left: 0px !important;
+}
+
+
+</style>
+<meting-js  
+  class=""
+  server="tencent"
+  type="playlist"
+  id="8062553743"
+  fixed='true'
+  autoplay='false'
+  theme='#42b983'
+  loop='all'
+  order='random'
+  preload='auto'
+  volume='0.7'
+  list-folded='true'
+>
+</meting-js>
+
+<!-- <style>
+  #aplayer {
+    position: fixed;
+    left: 0;
+    bottom: 300px;
+  }
+</style> -->
+<script src="https://cdn.jsdelivr.net/npm/aplayer@1.10.1/dist/APlayer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+    
+
+    <!-- 图片放大 -->
+    
+      <script src="/js/fancybox/jquery.fancybox.min.js"></script>
+    
+
+    <!-- 百度解析 -->
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <!-- 背景彩带 -->
+    
+      <script type="text/javascript" size="100" alpha='0.4' zIndex="-1" src="/js/ribbon.min.js"></script>
+    
+
+    <script src="/js/utils/index.js"></script>
+    <script src="/js/app.js"></script>
+    
+    <!-- 文章目录所需js -->
+<link href="/js/tocbot/tocbot.css" rel="stylesheet">
+<script src="/js/tocbot/tocbot.min.js"></script>
+
+<script>
+  var headerEl = 'h2, h3, h4',  //headers 
+    content = '.post-detail',//文章容器
+    idArr = {};  //标题数组以确定是否增加索引id
+  //add #id
+  var option = {
+    // Where to render the table of contents.
+    tocSelector: '.toc',
+    // Where to grab the headings to build the table of contents.
+    contentSelector: content,
+    // Which headings to grab inside of the contentSelector element.
+    headingSelector: headerEl,
+    scrollSmooth: true,
+    scrollSmoothOffset: -80,
+    headingsOffset: -($(window).height() * 0.4 - 45),
+    positionFixedSelector: '.toc-main',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    activeLinkClass: 'is-active-link',
+    // onClick: function (e) {},
+  }
+  if ($('.toc').length > 0) {
+
+    $(content).children(headerEl).each(function () {
+      //去除空格以及多余标点
+      var headerId = $(this).text().replace(/[\s|\~|`|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\_|\+|\=|\||\|\[|\]|\{|\}|\;|\:|\"|\'|\,|\<|\.|\>|\/|\?|\：|\，|\。]/g, '');
+
+      headerId = headerId.toLowerCase();
+      if (idArr[headerId]) {
+        //id已经存在
+        $(this).attr('id', headerId + '-' + idArr[headerId]);
+        idArr[headerId]++;
+      }
+      else {
+        //id未存在
+        idArr[headerId] = 1;
+        $(this).attr('id', headerId);
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+      tocbot.init(option);
+      mobileTocClick();
+    });
+
+  }
+
+  window.tocScrollFn = function () {
+    return bamboo.throttle(function () {
+      findHeadPosition();
+    }, 100)()
+  }
+  window.addEventListener('scroll', tocScrollFn);
+
+  const findHeadPosition = function (top) {
+    if ($('.toc-list').length <= 0) {
+      return false;
+    }
+    setTimeout(() => {  // or DOMContentLoaded 
+      autoScrollToc();
+    }, 0);
+  }
+
+  const autoScrollToc = function () {
+    const $activeItem = document.querySelector('.is-active-link');
+    const $cardToc = document.querySelector('.toc-content');
+    const activePosition = $activeItem.getBoundingClientRect().top
+    const sidebarScrollTop = $cardToc.scrollTop
+    if (activePosition > (document.documentElement.clientHeight - 100)) {
+      $cardToc.scrollTop = sidebarScrollTop + 150
+    }
+    if (activePosition < 100) {
+      $cardToc.scrollTop = sidebarScrollTop - 150
+    }
+  }
+
+  document.addEventListener('pjax:send', function () {
+    if ($('.toc').length) {
+      tocbot.destroy();
+    }
+  });
+
+  document.addEventListener('pjax:complete', function () {
+    if ($('.toc').length) {
+      tocbot.init(option);
+      mobileTocClick();
+    }
+  });
+  
+  // 手机端toc按钮点击出现目录
+  const mobileTocClick = function () {
+    const $cardTocLayout = document.getElementsByClassName('toc-aside')[0];
+    const $cardToc = $cardTocLayout.getElementsByClassName('toc-content')[0];
+    let right = '45px';
+    if (window.innerWidth >= 551 && window.innerWidth <= 992) {
+      right = '100px'
+    }
+    const mobileToc = {
+      open: () => {
+        $cardTocLayout.style.cssText = 'animation: toc-open .3s; opacity: 1; right: ' + right
+      },
+
+      close: () => {
+        $cardTocLayout.style.animation = 'toc-close .2s'
+        setTimeout(() => {
+          $cardTocLayout.style.cssText = "opacity:''; animation: ''; right: ''"
+        }, 100)
+      }
+    }
+    document.getElementById('toc-mobile-btn').addEventListener('click', () => {
+      if (window.getComputedStyle($cardTocLayout).getPropertyValue('opacity') === '0') mobileToc.open()
+      else mobileToc.close()
+    })
+
+    $cardToc.addEventListener('click', (e) => {
+      if (window.innerWidth < 992) { // 小于992px的时候
+        mobileToc.close()
+      }
+    })
+  }
+</script>
+
+<style>
+  .is-position-fixed {
+    position: sticky !important;
+    top: 74px;
+  }
+
+  .toc-main ul {
+    counter-reset: show-list;
+  }
+
+  .toc-main ul li::before {
+    content: counter(item)".";
+    display: block;
+    position: absolute;
+    left: 12px;
+    top: 0;
+  }
+</style> 
+
+<!-- 设置导航背景 -->
+<script>
+  let setHeaderClass = () => {
+    const headerMenuTransparent = true;
+    if (!headerMenuTransparent) { return; }
+    const nav = $('#navHeader');
+    const navTop = nav.outerHeight();
+    const winTop = $(window).scrollTop();
+    if(winTop > navTop) {
+      nav.addClass('header-bg-color');
+    }
+    else {
+      nav.removeClass('header-bg-color');
+    }
+  };
+
+  let scrollCollect = () => {
+    return bamboo.throttle(function (e) {
+      setHeaderClass();
+    }, 200)()
+  }
+
+  let initHeaderBg = () => {
+    setHeaderClass();
+  }
+
+  setHeaderClass();
+  window.addEventListener('scroll', scrollCollect);
+
+  document.addEventListener('pjax:send', function () {
+    window.removeEventListener('scroll', scrollCollect)
+  })
+  document.addEventListener('pjax:complete', function () {
+    window.addEventListener('scroll', scrollCollect);
+    setHeaderClass();
+  })
+</script> 
+
+<!-- 渲染issues标签里的内容 -->
+<script>
+  function loadIssuesJS() {
+    if ($(".post-detail").find(".issues-api").length == 0) {
+      return;
+    } 
+    loadScript('/js/issues/index.js');
+  };
+  $(function () {
+    loadIssuesJS();
+  });
+  document.addEventListener('pjax:complete', function () {
+    if (typeof IssuesAPI == "undefined") {
+      loadIssuesJS();
+    }
+  })
+</script>
+
+<!-- 输入框打字特效 -->
+<!-- 输入框打字特效 -->
+
+  <script src="/js/activate-power-mode.js"></script>
+  <script>
+    POWERMODE.colorful = true;  // 打开随机颜色特效
+    POWERMODE.shake = false;    // 关闭输入框抖动
+    document.body.addEventListener('input', POWERMODE);//监听打字事件
+  </script>
+
+
+<!-- markdown代码一键复制功能 -->
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/v-plugs-ayu/lib/ayu.css">
+  <script src="https://cdn.jsdelivr.net/npm/v-plugs-ayu/lib/ayu.umd.min.js"></script>
+  <script src="/js/clipboard/clipboard.min.js"></script>
+  <div id="appCopy">
+  </div>
+  <script data-pjax>
+    var vm = new Vue({
+      el: '#appCopy',
+      data: {
+      },
+      computed: {
+      },
+      mounted() {
+        const that = this;
+        var copy = '复制';
+        /* code */
+        var initCopyCode = function () {
+          var copyHtml = '';
+          copyHtml += '<button class="btn-copy" data-clipboard-snippet="" style="position:absolute;top:0;right:0;z-index:1;">';
+          copyHtml += '<i class="fas fa-copy"></i><span>' + copy + '</span>';
+          copyHtml += '</button>';
+          $(".post-detail pre").not('.gutter pre').wrap("<div class='codeBox' style='position:relative;width:100%;'></div>")
+          $(".post-detail pre").not('.gutter pre').before(copyHtml);
+          new ClipboardJS('.btn-copy', {
+            target: function (trigger) {
+              return trigger.nextElementSibling;
+            }
+          });
+        }
+        initCopyCode();
+        $('.btn-copy').unbind('click').bind('click', function () {
+          doSomething();
+        })
+        $(document).unbind('keypress').bind('keypress', function (e) {
+          if (e.ctrlKey && e.keyCode == 67) {
+            doSomething();
+          }
+        })
+
+        function doSomething() {
+          that.$notify({
+            title: "成功",
+            content: "代码已复制，请遵守相关授权协议。",
+            type: 'success'
+          })
+        }
+      },
+      methods: {
+      },
+      created() { }
+    })
+  </script>
+  
+
+<!-- 图片懒加载 -->
+<script defer src="https://cdn.jsdelivr.net/npm/vanilla-lazyload@17.1.0/dist/lazyload.min.js"></script>
+<script>
+  // https://www.npmjs.com/package/vanilla-lazyload
+  // Set the options globally
+  // to make LazyLoad self-initialize
+  window.lazyLoadOptions = {
+    elements_selector: ".lazyload",
+    threshold: 0
+  };
+  // Listen to the initialization event
+  // and get the instance of LazyLoad
+  window.addEventListener(
+    "LazyLoad::Initialized",
+    function (event) {
+      window.lazyLoadInstance = event.detail.instance;
+    },
+    false
+  );
+  document.addEventListener('DOMContentLoaded', function () {
+    lazyLoadInstance.update();
+  });
+  document.addEventListener('pjax:complete', function () {
+    lazyLoadInstance.update();
+  });
+</script>
+
+
+<!-- 卡片滚动动画 -->
+   
+
+<!-- 评论所需js -->
+
+  
+    <script type="text/javascript">
+  var utteranceCommon = {};
+
+  function check_utterance() {
+    let isDark = JSON.parse(localStorage.getItem('dark')) || JSON.parse('false');
+    if (isDark) {
+      utteranceCommon.Theme = 'github-dark';
+    } else {
+      utteranceCommon.Theme = 'github-light';
+    }
+
+    return document.getElementById("gitment-container");
+  }
+  comment_el = '#gitment-container';
+  load_utterance = function () {
+    if ($(comment_el).length) {
+      // 匿名函数，防止污染全局变量
+      const HEAD = check_utterance();
+
+      var utterances = document.createElement('script');
+      utterances.type = 'text/javascript';
+      utterances.async = true;
+      utterances.setAttribute('issue-term', 'pathname')
+      utterances.setAttribute('theme', utteranceCommon.Theme)
+      utterances.setAttribute('repo', '')
+      utterances.crossorigin = 'anonymous';
+      utterances.src = 'https://utteranc.es/client.js';
+      // content 是要插入评论的地方
+      document.getElementById('gitment-container').appendChild(utterances);
+
+    }
+  }
+
+  function dark_utterance() {
+    const HEAD = check_utterance();
+    if (!HEAD) return;
+    const message = {
+      type: 'set-theme',
+      theme: utteranceCommon.Theme
+    };
+    const utteranceIframe = document.querySelector('iframe');
+    utteranceIframe.contentWindow.postMessage(message, 'https://utteranc.es');
+  }
+
+  $(document).ready(load_utterance);
+  document.addEventListener('pjax:complete', function () {
+    load_utterance();
+  });
+
+  $('.dark').click(function () {
+    setTimeout(() => {
+      dark_utterance();
+    });
+  })
+
+</script>
+
+<style>
+  .utterances {
+    max-width: inherit !important;
+  }
+</style>
+  
+
+
+<!-- 鼠标点击特效 -->
+<!-- 爱心点击 -->
+
+  
+    <canvas class="fireworks" style="position: fixed;left: 0;top: 0;z-index: 999; pointer-events: none;" ></canvas>
+    <script src="//cdn.bootcss.com/animejs/2.2.0/anime.min.js"></script>
+    <script src="/js/cursor/explosion.min.js"></script>
+  
+
+
+
+
+  <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" data-pjax></script>
+
+
+    <!-- pjax -->
+    
+
+<!-- pjax -->
+
+
+  <script src="/js/pjax@0.2.8/index.js"></script>
+  
+    <!-- 样式位于：source/css/_third-party/pjaxanimate.styl -->
+
+<div class="pjax-animate">
+  
+    <div class="loading-circle"><div id="loader-circle"></div></div>
+    <script>
+      window.ShowLoading = function() {
+        $(".loading-circle").css("display", "block");
+      };
+      window.HideLoading = function() {
+        $(".loading-circle").css("display", "none");
+      }
+    </script>
+  
+	<script>
+    document.addEventListener('pjax:complete', function () {
+      window.HideLoading();
+    })
+    document.addEventListener('pjax:send', function () {
+      window.ShowLoading();
+    })
+    document.addEventListener('pjax:error', function () {
+      window.HideLoading();
+    })
+	</script>
+</div>
+
+  
+
+  <script>
+    var pjax = new Pjax({
+      elements: 'a[href]:not([href^="#"]):not([href="javascript:void(0)"]):not([no-pjax])',   // 拦截正常带链接的 a 标签
+      selectors: ["#pjax-container","title"],                                   // 根据实际需要确认重载区域
+      cacheBust: false,   // url 地址追加时间戳，用以避免浏览器缓存
+      timeout: 5000
+    });
+
+    document.addEventListener('pjax:send', function (e) {
+
+      try {
+        var currentUrl = window.location.pathname;
+        var targetUrl = e.triggerElement.href;
+        var banUrl = [""];
+        if (banUrl[0] != "") {
+          banUrl.forEach(item => {
+            if(currentUrl.indexOf(item) != -1 || targetUrl.indexOf(item) != -1) {
+              window.location.href = targetUrl;
+            }
+          });
+        }
+      } catch (error) {}
+
+      $(window).unbind('resize');
+      $(window).unbind('scroll');
+      $(document).unbind('scroll');
+      $(document).unbind('click');
+      $('body').unbind('click');
+
+    })
+    
+    document.addEventListener('pjax:complete', function () {
+      $('script[data-pjax], .pjax-reload script').each(function () {
+        $(this).parent().append($(this).remove());
+      });
+    });
+
+    document.addEventListener('pjax:error', function (e) {
+      window.location.href = e.triggerElement.href;
+    })
+    
+    // 刷新不从顶部开始
+    document.addEventListener("DOMContentLoaded", function () {
+      history.scrollRestoration = 'auto';
+    })
+  </script>
+
+
 
   </body>
 </html>
