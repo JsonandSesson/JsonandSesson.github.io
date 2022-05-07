@@ -12,6 +12,8 @@
         verify: false,
         app_id: "<%= theme.valine.appid %>",
         app_key: "<%= theme.valine.appkey %>",
+        serverURLs: "<%= theme.valine.serverURLs %>",
+        server: '<%= theme.valine.server %>',
         placeholder: "<%= theme.valine.placeholder %>",
         avatar: "<%= theme.valine.avatar %>",
         master: "<%= theme.valine.master %>",   //博主邮箱md5
@@ -83,12 +85,12 @@
             var newcontent = content.substring(0, 50).replace(/<[^>]+>/g, "");
             //发布一个弹幕
             const item = {
-              img: `https://q1.qlogo.cn/g?b=qq&nk=${email}&s=640`, //图片 
-              info: newcontent, //文字 
-              href: link, //链接 
-              close: true, //显示关闭按钮 
-              speed: speed, //延迟,单位秒,默认6 
-              color: '#fff', //颜色,默认白色 
+              img: `https://q1.qlogo.cn/g?b=qq&nk=${email}&s=640`, //图片
+              info: newcontent, //文字
+              href: link, //链接
+              close: true, //显示关闭按钮
+              speed: speed, //延迟,单位秒,默认6
+              color: '#fff', //颜色,默认白色
               old_ie_color: '#000000', //ie低版兼容色,不能与网页背景相同,默认黑色
             }
             $('body').barrager(item);

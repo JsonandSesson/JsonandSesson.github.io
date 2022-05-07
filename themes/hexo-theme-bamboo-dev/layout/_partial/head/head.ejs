@@ -1,4 +1,4 @@
-<% 
+<%
   let iconType = 'image/png'
   let faviconExt = theme.favicon.substr(theme.favicon.lastIndexOf('.') + 1, theme.favicon.length)
   if (faviconExt === 'png') {
@@ -58,7 +58,7 @@
   <link rel="stylesheet" href="<%= theme.CDN.iconfont %>">
   <link href="<%= theme.CDN.fontAwesome %>" rel="stylesheet">
   <link href="<%- url_for('/js/swiper/swiper@5.4.1.min.css') %>" rel="stylesheet">
-  
+
   <% if(theme.live2d.on === true ) { %>
     <script>
         var themeModelId = '<%= theme.live2d.modelId %>';
@@ -66,7 +66,7 @@
             localStorage.setItem('modelId', themeModelId);
         }
     </script>
-    
+
     <script src="<%= theme.CDN.live2d %>"></script>
     <script>
         var live2dOpen = eval('<%= theme.live2d.open %>') || false;
@@ -75,10 +75,10 @@
         }
     </script>
   <% } %>
-  
+
   <%- css('css/animate.min.css') %>
   <%- css('css/style.css') %>
-  
+
   <% if(theme.fancybox.on === true ) { %>
     <%- css('js/fancybox/jquery.fancybox.min.css') %>
   <% } %>
@@ -96,7 +96,6 @@
     <link href="<%- url_for(theme.CDN.paceCss) %>" rel="stylesheet">
 
     <% if (theme.valine.on && page.comments !== false) { %>
-        <script src="<%- url_for('/js/valine/av-min@3.0.4.js') %>"></script>
         <script src="<%- url_for(theme.CDN.valine) %>"></script>
     <% } %>
 

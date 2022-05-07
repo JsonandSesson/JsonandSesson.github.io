@@ -1,5 +1,7 @@
 # Jacman
 
+## ssh -T git@github.com
+
 [README](/README.md)
 
 Jacman 是为 [Hexo](http://hexo.io) 设计的一款清新且具有响应式的主题，拥有更丰富的特性并支持了很多的国内服务。Jacman 始于 [Pacman](https://github.com/A-limon/pacman) 修改而来。
