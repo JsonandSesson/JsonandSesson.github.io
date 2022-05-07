@@ -1,8 +1,15 @@
 ---
-title: spiderFlow
-tags: web爬虫
-categories: 爬虫
+title: spiderFlow可视化爬虫工具
+tags: ['web爬虫']
+categories: ['爬虫','可视化工具']
 date: 2022-05-06 10:46:00
+swiperImg: '/medias/1.jpg'
+img: '/medias/1.jpg'
+swiper: true # 将改文章放入轮播图中
+toc: true
+tocOpen: true 
+copyright: true
+top: true # 文章置顶
 ---
 
 ### **介绍**
@@ -127,10 +134,14 @@ application.properties相关配置
         - 将根据上一步定义的变量，指定输出。如果需要插入数据库，需要指定数据源。
         ![](http://b6123.top:9000/blog/ICLR2H2EU07C%24OBZ%5D2C7U%25W.png)
         - 数据源配置以及数据库设计
-        ![](http://b6123.top:9000/blog/EI6%5DFX%28EE%60EULZT%24%40%7B_~WN5.png)
-        ![](http://b6123.top:9000/blog/D%7B%4032VN2L~U9MZ8MSHDE56E.png)  
+          {% gallery %}
+          ![数据源配置](http://b6123.top:9000/blog/EI6%5DFX%28EE%60EULZT%24%40%7B_~WN5.png)
+          ![表设计](http://b6123.top:9000/blog/D%7B%4032VN2L~U9MZ8MSHDE56E.png)  
+          {% endgallery %} 
      #### 测试相关使用
-        ![](http://b6123.top:9000/blog/IKQ0%5B1QM%28%7BK%24LY%7B%60%7BN_BHZR.png)
+     {% gallery %}
+        ![执行结果](http://b6123.top:9000/blog/IKQ0%5B1QM%28%7BK%24LY%7B%60%7BN_BHZR.png)
+     {% endgallery %}
      可以看到控制台已经输出日志，检查数据库保存情况
      ![img.png](http://b6123.top:9000/blog/_drafts/img.png)
      可以看到相关数据已经成功传入。
@@ -140,4 +151,3 @@ application.properties相关配置
      #死循环检测(节点执行次数超过该值时认为是死循环)默认值为5000
      spider.detect.dead-cycle=1000000
      ```
-
