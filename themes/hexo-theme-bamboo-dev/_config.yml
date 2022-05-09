@@ -58,7 +58,7 @@ sidebar:
   widget_library:
     side_blogger:
       on: true
-      avatar: http://api.btstu.cn/sjtx/api.php?lx=c1&format=images
+      avatar: http://api.btstu.cn/sjtx/api.php?lx=c1&format=images # 博天api随机
       shape: rectangle # circle, rectangle
       url: /about/
       title: 青墨书晚风
@@ -419,6 +419,7 @@ copyright:
 motto:
   on: true
   title: '座右铭'
+  order: -1
   content: "A man's dream will never end ! ——马歇尔迪奇"
   background: 'url("https://img10.360buyimg.com/ddimg/jfs/t1/166587/8/21344/72069/6088c24fEda5fdeb6/f9730ab637b7ca47.png")' # url("xxx") or red or #000 or rgba() ..
 
@@ -429,6 +430,10 @@ notice:
   title: '公告'
   background: 'url("https://img10.360buyimg.com/ddimg/jfs/t1/166587/8/21344/72069/6088c24fEda5fdeb6/f9730ab637b7ca47.png")' # url("xxx") or red or #000 or rgba() ..
   list: # list相当于数组对象，[{title:'xx',date: 'xx', url: 'xxx', color: 'red'}]根据自己实际情况，增加或者删除
+     - title: '#对接了微博热搜、历史上的今天、添加了单身墙（呜呜呜~）、提交日历以及轮播图'
+       date: '2022-05-09'
+       url: ''   # 可以为空, 也可以是本地页面地址如 '/archives'
+       color: green   # 字体颜色
      - title: '#博客新增了评论功能，快骚扰博主吧~'
        date: '2022-05-07'
        url: ''   # 可以为空, 也可以是本地页面地址如 '/archives'
@@ -441,20 +446,6 @@ notice:
        date: '2022-05-06'
        url: '/2022/05/06/spiderFlow'
        color: '#42b983'
-    # - title: '#新增 支持二级导航'
-    #   date: '2021-04-28'
-    #   url: 'http://baidu.com'
-    #   color: blue
-    # - title: '#新增 归档，分类等页面头部图片位置可以设置为视频 ~'
-    #   date: '2021-04-28'
-    #   url: 'http://baidu.com'
-    #   color: '#42b983'
-    # - title: '#新增 头部导航可以设置为在顶部透明，并且可以任意设置背景颜色了 ~'
-    #   date: '2021-04-28'
-    #   url: 'http://baidu.com'
-    # - title: '#新增 首页增加了座右铭和公告栏目 ~'
-    #   date: '2021-04-28'
-    #   url: 'http://baidu.com'
 
 
 
@@ -483,6 +474,7 @@ valine:
   appkey: '5UYyAloxmMLHE8GEwPSFRC6x'
   avatar: 'mp' # 匿名者头像选项 https://valine.js.org/avatar.html
   placeholder: '客官，说点什么吧' # 评论内容输入框的 placeholder
+  visitor: true # 阅读量统计
   master: '0888b5ea3351ba9adb4c650b4f19bacf' # 博主标签识别，博主邮箱md5 可以去md5加密网站，例如 https://md5jiami.51240.com/ ，将自己的邮箱输入， 得到 32位小写 的字符串
   friends: [] # 小伙伴的 邮箱md5， 是个数组
   requiredFields: ['nick', 'mail'] # 设置必填项 ['nick', 'mail'] nick为昵称必填， mail为邮箱必填，建议设置必填，填写qq邮箱，会使用qq头像作为头像
@@ -840,7 +832,7 @@ CDN:
   gitmentJs: https://cdn.jsdelivr.net/npm/gitment@0.0.3/dist/gitment.browser.js
   gitalkCss: https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.css
   gitalkJs: https://cdn.jsdelivr.net/npm/gitalk@1.7.2/dist/gitalk.min.js
-  busuanzi: //busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js # 卜算子
+  busuanzi: https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js # 不蒜子
   ayuCss: https://cdn.jsdelivr.net/npm/v-plugs-ayu/lib/ayu.css
   ayuJs: https://cdn.jsdelivr.net/npm/v-plugs-ayu/lib/ayu.umd.min.js
   copyRight: https://creativecommons.org/licenses/by-nc-nd/4.0/
