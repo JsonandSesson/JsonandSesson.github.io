@@ -2,38 +2,35 @@
 
 # 菜单
 menu:
-  # Home:
-  #   url: /
-  #   icon: fas fa-home
-  # Archives:
-  #   url: /archives
-  #   icon: fas fa-archive
-  # Tags:
-  #   url: /tags
-  #   icon: fas fa-tags
-  # Categories:
-  #   url: /categories
-  #   icon: fas fa-bookmark
-  # About:
-  #   url: /about
-  #   icon: fas fa-user
-  # Friends:
-  #   url: /friends
-  # 更多: # 这是二级菜单的写法
-  #  icon: fas fa-link
-  #  children:
-  #   - name: 图库
-  #     url: /gallery
-  #     icon: fas fa-music
-  #   - name: 友情连接
-  #     url: /huoban
-  #     icon: fas fa-film
-  #   - name: 关于我
-  #     url: /me
-  #     icon: fas fa-film
-  #   - name: 百度
-  #     url: http://baidu.com
-  #     icon: fas fa-film
+   Home:
+     url: /
+     icon: fas fa-home
+   Archives:
+     url: /archives
+     icon: fas fa-archive
+   Tags:
+     url: /tags
+     icon: fas fa-tags
+   Categories:
+     url: /categories
+     icon: fas fa-bookmark
+   About:
+     url: /about
+     icon: fas fa-user
+   Friends:
+     url: /friends
+   更多: # 这是二级菜单的写法
+    icon: fas fa-link
+    children:
+     - name: 📸图库
+       url: /gallery
+     - name: 🧑‍🤝‍🧑友情连接
+       url: /huoban
+     - name: 👨‍💻关于我
+       url: /me
+     - name: 百度
+       url: http://baidu.com
+       icon: fas fa-film
 
 # github地址, 头部导航右上角的github链接
 Github:
@@ -372,44 +369,48 @@ skills:
     CSS:
       background: '#000'
       percent: 70%
+    JAVA:
+      background: 'blue'
+      percent: 60%
+    Linux:
+      background: 'green'
+      percent: 40%
     # 可以在下面继续写哦，例如python，java等，按照上面的格式写
 
 # 关于我 社交账号
 socialAccounts:
   on: true
-  # data: # data下面的值，不是固定个数的，可以自己增加或者删除
-  #   QQ:
-  #     icon: fas fa-qq
-  #     name: xxxxxxxx
-  #     url: 'http://www.baidu.com'
-  #   微信:
-  #     icon: fas fa-weixin
-  #     name: xxxxxxxx
-  #     url: 'http://www.baidu.com'
+  data: #data下面的值，不是固定个数的，可以自己增加或者删除
+    QQ:
+      icon: 'fas fa-qq'
+      name: '670132701'
+      url: ''
+    微信:
+      icon: 'fas fa-weixin'
+      name: 'lyy199605179527'
+      url: ''
 
 # 关于我 游戏
 games:
   on: true
-  # data: # data下面的值，不是固定个数的，可以自己增加或者删除
-  #   王者荣耀:
-  #     img: 'https://pic2.zhimg.com/80/v2-54730a36304842b86a57a237b8b39945_720w.jpg?source=1940ef5c'
-  #   英雄杀:
-  #     img: 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1909008358,1888649581&fm=26&gp=0.jpg'
-  #   和平精英:
-  #     img: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1595596612190&di=dbf2030780758c4724ecb1f07f2f4f73&imgtype=0&src=http%3A%2F%2Fimgup04.51wxjz.com%2F51wxjz%2F2019-06%2F05%2F09%2F15596983468928_0.png'
-  #   英雄联盟:
-  #     img: 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3035766587,2822701570&fm=26&gp=0.jpg'
+  data: # data下面的值，不是固定个数的，可以自己增加或者删除
+    王者荣耀:
+      img: 'https://pic2.zhimg.com/80/v2-54730a36304842b86a57a237b8b39945_720w.jpg?source=1940ef5c'
+    和平精英:
+      img: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1595596612190&di=dbf2030780758c4724ecb1f07f2f4f73&imgtype=0&src=http%3A%2F%2Fimgup04.51wxjz.com%2F51wxjz%2F2019-06%2F05%2F09%2F15596983468928_0.png'
+    英雄联盟:
+      img: 'https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=3035766587,2822701570&fm=26&gp=0.jpg'
 
 # 关于我 书籍
 books:
   on: true
-  # data: # data下面的值，不是固定个数的，可以自己增加或者删除
-  #   明朝那些事儿:
-  #     img: 'https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=2736238052,2078148140&fm=26&gp=0.jpg'
-  #   春秋左传:
-  #     img: 'https://pic2.zhimg.com/50/v2-6f33f60312de25ddcb795fc81ee91b38_720w.jpg?source=54b3c3a5'
-  #   孙子兵法:
-  #     img: 'https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=710999414,899378807&fm=26&gp=0.jpg'
+  data: # data下面的值，不是固定个数的，可以自己增加或者删除
+    活着:
+      img: 'http://b6123.top:9000/blog/b90e7bec54e736d10ecb1fada1dacfcbd76269ca.jpg'
+    影响力:
+      img: 'http://b6123.top:9000/blog/20180309165016152058541687898.jpg'
+    墨菲定律:
+      img: 'http://b6123.top:9000/blog/s8958835.jpg'
 
 #版权信息  coryRyght
 copyright:
