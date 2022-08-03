@@ -16,7 +16,7 @@ top: true # 文章置顶
 ---
 ---
 spider-flow 是一个爬虫平台，以图形化方式定义爬虫流程，无需代码即可实现一个爬虫  
-![spdierflow_index](http://b6123.top:9000/blog/spdierflow_index.png)
+![spdierflow_index](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/spdierflow_index.png)
 详情见[官方文档](https://www.spiderflow.org/changelog.html)  
 可以下载官方代码包[相关代码](https://github.com/ssssssss-team/spider-flow)
 ### **特性**
@@ -70,10 +70,10 @@ google-chrome-stable --no-sandbox --headless --disable-gpu --screenshot https://
  ```bash
  google-chrome-stable --version
  ```
-![](http://b6123.top:9000/blog/spriderflow_chrome_version.png)
+![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/spriderflow_chrome_version.png)
 - [x] 根据指定版本下载chromedriver
   [下载地址](https://registry.npmmirror.com/binary.html?path=chromedriver/)  
-  ![](http://b6123.top:9000/blog/chromedrive.png)
+  ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/chromedrive.png)
   官方提供的是zip格式，如果服务器不存在请先安装 unzip
    ```bash
      # 安装unzip
@@ -111,7 +111,7 @@ application.properties相关配置
 
 - [x] 其他数据库地址配置的，相关库需要首先导入
   项目下的sql文件导入数据库中
-  ![](http://b6123.top:9000/blog/spriderflow_db.png)
+  ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/spriderflow_db.png)
   ___如果安装了其他插件，如百度ocr，需要另外导入sql，在ocr包下的db目录下___
   
 4. ###项目实战
@@ -119,31 +119,31 @@ application.properties相关配置
    - 具体流程图大致为  
      1. 定义开始节点
      2. 定义请求前变量
-        ![](http://b6123.top:9000/blog/OWRCWS%5DNPYGN%25GINKZV%5D096.png)
+        ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/OWRCWS%5DNPYGN%25GINKZV%5D096.png)
      3. 设置请求配置
-        ![](http://b6123.top:9000/blog/3%7DDX_KLFO%24WQ%40GNM928%5BL9D.png)
+        ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/3%7DDX_KLFO%24WQ%40GNM928%5BL9D.png)
      4. 定义变量获取页面相关返回值
         具体的语法请参考官方文档 [SpiderResponse](https://www.spiderflow.org/classes/spiderresponse.html#element)
-        ![](http://b6123.top:9000/blog/684%5B%5B4DZ%5BQYWHFFNLH%28M52G.png)
+        ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/684%5B%5B4DZ%5BQYWHFFNLH%28M52G.png)
      5. 循环设置
-        ![](http://b6123.top:9000/blog/%25IFL%605%40312%40E2THYP%28X~__K.png)
+        ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/%25IFL%605%40312%40E2THYP%28X~__K.png)
      6. 定义输出变量，解析每个节点
         此时 movieList 是一个List<Element>,我们要拿到当前循环的Element，获取电影中我们需要的每个属性
-        ![](http://b6123.top:9000/blog/%24J~Y1WZW1%5DMAO%246CS%60AU0_2.png)
+        ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/%24J~Y1WZW1%5DMAO%246CS%60AU0_2.png)
      7. 输出显示以及入库操作  
         - 将根据上一步定义的变量，指定输出。如果需要插入数据库，需要指定数据源。
-        ![](http://b6123.top:9000/blog/ICLR2H2EU07C%24OBZ%5D2C7U%25W.png)
+        ![](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/ICLR2H2EU07C%24OBZ%5D2C7U%25W.png)
         - 数据源配置以及数据库设计
           {% gallery %}
-          ![数据源配置](http://b6123.top:9000/blog/EI6%5DFX%28EE%60EULZT%24%40%7B_~WN5.png)
-          ![表设计](http://b6123.top:9000/blog/D%7B%4032VN2L~U9MZ8MSHDE56E.png)  
+          ![数据源配置](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/EI6%5DFX%28EE%60EULZT%24%40%7B_~WN5.png)
+          ![表设计](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/D%7B%4032VN2L~U9MZ8MSHDE56E.png)  
           {% endgallery %} 
      #### 测试相关使用
      {% gallery %}
-        ![执行结果](http://b6123.top:9000/blog/IKQ0%5B1QM%28%7BK%24LY%7B%60%7BN_BHZR.png)
+        ![执行结果](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/IKQ0%5B1QM%28%7BK%24LY%7B%60%7BN_BHZR.png)
      {% endgallery %}
      可以看到控制台已经输出日志，检查数据库保存情况
-     ![img.png](http://b6123.top:9000/blog/_drafts/img.png)
+     ![img.png](https://raw.githubusercontent.com/JsonandSesson/blog-img/main/img.png)
      可以看到相关数据已经成功传入。
 5. ### 其他坑
    > 如果报错死循环了，可能是因为没有配置 死循环监测（默认5000）

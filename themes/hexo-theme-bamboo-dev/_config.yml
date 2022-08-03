@@ -406,11 +406,11 @@ books:
   on: true
   data: # data下面的值，不是固定个数的，可以自己增加或者删除
     活着:
-      img: 'http://b6123.top:9000/blog/b90e7bec54e736d10ecb1fada1dacfcbd76269ca.jpg'
+      img: 'https://raw.githubusercontent.com/JsonandSesson/blog-img/main/b90e7bec54e736d10ecb1fada1dacfcbd76269ca.jpg'
     影响力:
-      img: 'http://b6123.top:9000/blog/20180309165016152058541687898.jpg'
+      img: 'https://raw.githubusercontent.com/JsonandSesson/blog-img/main/20180309165016152058541687898.jpg'
     墨菲定律:
-      img: 'http://b6123.top:9000/blog/s8958835.jpg'
+      img: 'https://raw.githubusercontent.com/JsonandSesson/blog-img/main/s8958835.jpg'
 
 #版权信息  coryRyght
 copyright:
