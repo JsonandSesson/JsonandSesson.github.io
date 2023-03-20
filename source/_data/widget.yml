@@ -59,19 +59,21 @@ widget_library_sticky:
     url: http://baidu.com
     background: '#fff'
     html: '
-    <div style="display: inline-block">
-      <img src="https://s1.ax1x.com/2023/03/20/ppNpkPU.jpg"
-        style="width: 50px;height: 50px;vertical-align: -20px;border-radius: 50%;margin-right: 5px;margin-bottom: 5px;-webkit-box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);border: 2px solid #fff;" />
+    <div style="width: 100%;text-align: center;">
+      <span>
+        <img src="https://s1.ax1x.com/2023/03/20/ppNpkPU.jpg"
+          style="width: 50px;height: 50px;vertical-align: -20px;border-radius: 50%;margin-right: 5px;margin-bottom: 5px;-webkit-box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);border: 2px solid #fff;" />
+      </span>
+      <span>
+        <img src="https://s1.ax1x.com/2023/03/20/ppN9GkV.png"
+          style="width: 50px;height: 50px;vertical-align: -20px;border-radius: 50%;margin-right: 5px;margin-bottom: 5px;" />
+      </span>
+      <span>
+        <img src="https://s1.ax1x.com/2023/03/20/ppNSOPS.jpg"
+          style="width: 50px;height: 50px;vertical-align: -20px;border-radius: 50%;margin-right: 5px;margin-bottom: 5px;-webkit-box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);border: 2px solid #fff;" />
+      </span>
     </div>
-    <div style="display: inline-block;margin-left: 12px">
-      <img src="https://s1.ax1x.com/2023/03/20/ppN9GkV.png"
-        style="width: 50px;height: 50px;vertical-align: -20px;border-radius: 50%;margin-right: 5px;margin-bottom: 5px;" />
-    </div>
-    <div style="display: inline-block;float: right;">
-      <img src="https://s1.ax1x.com/2023/03/20/ppNSOPS.jpg"
-        style="width: 50px;height: 50px;vertical-align: -20px;border-radius: 50%;margin-right: 5px;margin-bottom: 5px;-webkit-box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);box-shadow: 1px 1px 1px rgba(0,0,0,.1), 1px 1px 1px rgba(0,0,0,0.1), 1px 1px 1px rgba(0,0,0,0.1);border: 2px solid #fff;" />
-    </div>
-     <div id="htmer_time"></div>
+     <div style="text-align: center;font-size: 15px;" id="htmer_time"></div>
     <script data-pjax src="/love/index.js"></script>
   '
 # home_widget里面的内容会出现在座右铭那一个栏目里面
