@@ -2,11 +2,41 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="68b83102-6c6d-471f-a099-a032d1aac078" name="Default" comment="爬虫">
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片1.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片10.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片11.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片12.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片13.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片14.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片15.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片16.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片17.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片18.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片19.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片20.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片21.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片22.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片23.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片24.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片25.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片26.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片27.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片28.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片29.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片3.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片30.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片4.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片5.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片6.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片7.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片8.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/source/images/rk/图片9.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/themes/hexo-theme-bamboo-dev/_config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/themes/hexo-theme-bamboo-dev/_config.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/source/_data/widget.yml" beforeDir="false" afterPath="$PROJECT_DIR$/source/_data/widget.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/themes/hexo-theme-bamboo-dev/source/love/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/themes/hexo-theme-bamboo-dev/source/love/index.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -77,11 +107,19 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/source/images/rk" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="project.propVCSSupport.Mappings" />
     <property name="vue.rearranger.settings.migration" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\myworksapce\JsonandSesson.github.io\source\images\rk" />
+      <recent name="D:\myworksapce\JsonandSesson.github.io\source\_drafts" />
+      <recent name="D:\myworksapce\JsonandSesson.github.io\source\_posts" />
+    </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
@@ -102,6 +140,11 @@
       <workItem from="1651804560618" duration="72000" />
       <workItem from="1651804648598" duration="9584000" />
       <workItem from="1651821005879" duration="3158000" />
+      <workItem from="1667270796329" duration="7883000" />
+      <workItem from="1675751067111" duration="1225000" />
+      <workItem from="1679044359008" duration="1913000" />
+      <workItem from="1679273819363" duration="3403000" />
+      <workItem from="1679295084657" duration="4167000" />
     </task>
     <task id="LOCAL-00001" summary="隐藏歌词">
       <created>1648461503412</created>
@@ -161,6 +204,9 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
+    <ignored-roots>
+      <path value="$PROJECT_DIR$/.deploy_git" />
+    </ignored-roots>
     <MESSAGE value="隐藏歌词" />
     <MESSAGE value="爬虫" />
     <option name="LAST_COMMIT_MESSAGE" value="爬虫" />

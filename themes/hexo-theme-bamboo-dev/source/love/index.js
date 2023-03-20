@@ -2,7 +2,7 @@ var htmer_time = document.getElementById("htmer_time");
 var htmer_time_time = null;
 function setTime(year,month,date,hours,minutes,seconds) {
     var create_time = Math.round(
-        new Date(Date.UTC(1996, 4, 17, 17, 30, 0)).getTime() / 1000
+        new Date(Date.UTC(2022, 5, 22, 21, 13, 0)).getTime() / 1000
     );
     var timestamp = Math.round(
         (new Date().getTime() + 8 * 60 * 60 * 1000) / 1000
